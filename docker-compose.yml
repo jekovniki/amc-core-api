@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  database:
+    platform: linux/x86_64
+    image: postgres:15.4
+    volumes:
+      - database:/var/lib/postgresql/data
+    ports:
+      - ${DATABASE_PORT}:${DATABASE_PORT}
+    expose:
+      - ${DATABASE_PORT}
+    environment:
+      - POSTGRES_USER=${DATABASE_USER}
+      - POSTGRES_PASSWORD=${DATABASE_PASSWORD}
+
+volumes:
+  database:

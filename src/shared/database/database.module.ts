@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { DataSource } from 'typeorm';
 
 @Module({
   imports: [
@@ -16,6 +17,14 @@ import { TypeOrmModule } from '@nestjs/typeorm';
         synchronize: configService.getOrThrow('DATABASE_SYNCHRONIZE') === 'true',
         logging: true,
       }),
+      dataSourceFactory: async (options) => {
+        if (!options) {
+          throw new Error('No options found when running migration');
+        }
+        const dataSource = await new DataSource(options).initialize();
+        await dataSource.runMigrations();
+        return dataSource;
+      },
       inject: [ConfigService],
     }),
   ],

@@ -3,18 +3,19 @@ import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Company } from './entities/company.entity';
-import { DataSource, Repository } from 'typeorm';
+import { Repository } from 'typeorm';
 
 @Injectable()
 export class CompanyService {
   constructor(
     @InjectRepository(Company)
     private readonly companyRepository: Repository<Company>,
-    private readonly dataSource: DataSource,
   ) {}
 
-  public async create({ name, uic }: CreateCompanyDto) {
-    return this.companyRepository.insert({ name, uic });
+  public async create({ name, uic, logo }: CreateCompanyDto): Promise<Company> {
+    const company = this.companyRepository.create({ name, uic, logo });
+
+    return await this.companyRepository.save(company);
   }
 
   public async findOne(id: string) {

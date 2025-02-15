@@ -1,4 +1,4 @@
-import { IsNotEmpty, IsOptional, IsString, Validate } from 'class-validator';
+import { IsNotEmpty, IsString, Validate } from 'class-validator';
 import { IsUnique } from 'src/shared/util/validator/is-unique-validator.util';
 
 export class CreateCompanyDto {
@@ -11,7 +11,6 @@ export class CreateCompanyDto {
   @Validate(IsUnique, ['company', 'uic'])
   uic: string;
 
-  @IsOptional()
   @IsString()
-  logo?: string;
+  logo: string;
 }

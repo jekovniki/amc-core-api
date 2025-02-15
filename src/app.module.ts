@@ -6,6 +6,7 @@ import { RoleModule } from './modules/role/role.module';
 import { PermissionModule } from './modules/permission/permission.module';
 import { CompanyModule } from './modules/company/company.module';
 import { UserModule } from './modules/user/user.module';
+import { IsUnique } from './shared/util/validator/is-unique-validator.util';
 
 @Module({
   imports: [
@@ -19,5 +20,6 @@ import { UserModule } from './modules/user/user.module';
     CompanyModule,
     UserModule,
   ],
+  providers: [IsUnique],
 })
 export class AppModule {}

@@ -6,7 +6,10 @@ import { Response, Request } from 'express';
 import { TOKENS } from 'src/shared/util/token.util';
 import { ConfigService } from '@nestjs/config';
 
-@Controller('user')
+@Controller({
+  path: 'user',
+  version: '1',
+})
 export class UserController {
   constructor(
     private readonly userService: UserService,
@@ -28,7 +31,7 @@ export class UserController {
         sameSite: 'strict',
       });
 
-      return this.userService.create(createUserDto);
+      return this.userService.create(createUserDto, registrationToken);
     } catch (error) {
       if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
         throw new UnauthorizedException('Invalid or expired registration token');

@@ -18,7 +18,7 @@ export class UserService {
     private readonly roleService: RoleService,
   ) {}
 
-  async create(createUserDto: CreateUserDto, registrationToken: string) {
+  async create(createUserDto: CreateUserDto, registrationToken: string): Promise<void> {
     const { iss, sub } = this.jwtService.verify(registrationToken, {
       secret: this.configService.getOrThrow('COMPANY_REGISTER_TOKEN_SECRET'),
     });
@@ -47,6 +47,10 @@ export class UserService {
 
   findOne(id: number) {
     return `This action returns a #${id} user`;
+  }
+
+  async findOneByEmail(email: string): Promise<User | null> {
+    return this.userRepository.findOneBy({ email });
   }
 
   update(id: number, updateUserDto: UpdateUserDto) {

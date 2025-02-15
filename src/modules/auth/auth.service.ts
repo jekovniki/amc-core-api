@@ -1,26 +1,91 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { BadRequestException, Injectable } from '@nestjs/common';
+import { SignInAuthDto } from './dto/sign-in-auth.dto';
+import { SignUpAuthDto } from './dto/sign-up-auth.dto';
+import { ChangePasswordAuthDto } from './dto/change-password-auth.dto';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
+import { UserService } from '../user/user.service';
+import { validateHash } from './util/hash.util';
+import { getExpirationTime } from 'src/shared/util/time.util';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+  constructor(
+    private readonly jwtService: JwtService,
+    private readonly configService: ConfigService,
+    private readonly userService: UserService,
+  ) {}
+  async signIn(input: SignInAuthDto): Promise<{
+    sessionData: string;
+    refreshToken: string;
+    accessToken: string;
+  }> {
+    const user = await this.userService.findOneByEmail(input.email);
+    if (!user) {
+      throw new BadRequestException('Wrong credentials');
+    }
+    if (!user.password) {
+      throw new BadRequestException('Please complete registration before you try to sign in');
+    }
+    if (!user.active) {
+      throw new BadRequestException('The user is no longer active');
+    }
+    const isValidPassword = await validateHash(input.password, user.password);
+    if (!isValidPassword) {
+      throw new BadRequestException('Wrong credentials');
+    }
+
+    const permissions = user.role.permissions.map((permission) => `${permission.feature}:${permission.permission}`);
+
+    return {
+      sessionData: btoa(
+        JSON.stringify({
+          email: user.email,
+          firstName: user.firstName,
+          lastName: user.lastName,
+          job: user.job,
+          createdAt: user.createdAt,
+          updatedAt: user.updatedAt,
+          permissions,
+          role: user.role.name,
+        }),
+      ),
+      accessToken: this.jwtService.sign(
+        {
+          iss: this.configService.getOrThrow('APP_URL'),
+          sub: user.id,
+          cid: user.company.id,
+          role: user.role.name,
+          scope: permissions,
+        },
+        {
+          expiresIn: getExpirationTime.minutes(30),
+          secret: this.configService.getOrThrow('ACCESS_TOKEN_SECRET'),
+        },
+      ),
+      refreshToken: this.jwtService.sign(
+        {
+          iss: this.configService.getOrThrow('APP_URL'),
+          sub: user.id,
+          cid: user.company.id,
+        },
+        {
+          expiresIn: getExpirationTime.days(7),
+          secret: this.configService.getOrThrow('REFRESH_TOKEN_SECRET'),
+        },
+      ),
+    };
   }
 
-  findAll() {
-    return `This action returns all auth`;
+  signUp(input: SignUpAuthDto) {
+    console.log('input: ', input);
+
+    return true;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} auth`;
-  }
+  changePassword(input: ChangePasswordAuthDto) {
+    console.log('input: ', input);
 
-  update(id: number, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} auth`;
+    return true;
   }
 }

@@ -1,34 +1,34 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Patch } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { SignInAuthDto } from './dto/sign-in-auth.dto';
+import { SignUpAuthDto } from './dto/sign-up-auth.dto';
+import { Public } from 'src/shared/decorator/public.decorator';
+import { ChangePasswordAuthDto } from './dto/change-password-auth.dto';
 
-@Controller('auth')
+@Controller({
+  path: 'auth',
+  version: '1',
+})
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+  @Public()
+  signIn(@Body() credentials: SignInAuthDto) {
+    return this.authService.signIn(credentials);
   }
 
-  @Get()
-  findAll() {
-    return this.authService.findAll();
+  @Post()
+  @Public()
+  signUp(@Body() input: SignUpAuthDto) {
+    return this.authService.signUp(input);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
+  @Patch()
+  changePassword(@Body() input: ChangePasswordAuthDto) {
+    return this.authService.changePassword(input);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
-  }
+  @Post()
+  signOut() {}
 }

@@ -5,7 +5,7 @@ import { ChangePasswordAuthDto } from './dto/change-password-auth.dto';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { UserService } from '../user/user.service';
-import { validateHash } from './util/hash.util';
+import { hashData, validateHash } from './util/hash.util';
 import { getExpirationTime } from 'src/shared/util/time.util';
 
 @Injectable()
@@ -34,6 +34,8 @@ export class AuthService {
     if (!isValidPassword) {
       throw new BadRequestException('Wrong credentials');
     }
+    console.log('user : ', user);
+    console.log('permissions : ', user.role.permissions);
 
     const permissions = user.role.permissions.map((permission) => `${permission.feature}:${permission.permission}`);
 
@@ -77,10 +79,26 @@ export class AuthService {
     };
   }
 
-  signUp(input: SignUpAuthDto) {
-    console.log('input: ', input);
+  async signUp(input: SignUpAuthDto) {
+    const { sub } = this.jwtService.verify(input.registrationToken, {
+      secret: this.configService.getOrThrow('USER_REGISTER_TOKEN_SECRET'),
+    });
 
-    return true;
+    const user = await this.userService.findOneById(sub);
+    if (!user) {
+      throw new BadRequestException('User no longer exists');
+    }
+    if (user.active || (!user.active && user.password)) {
+      throw new BadRequestException('User has already been registered');
+    }
+
+    return this.userService.update(sub, {
+      password: await hashData(input.password, this.configService),
+      firstName: input.firstName,
+      lastName: input.lastName,
+      job: input.lastName,
+      active: true,
+    });
   }
 
   changePassword(input: ChangePasswordAuthDto) {

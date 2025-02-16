@@ -34,9 +34,6 @@ export class AuthService {
     if (!isValidPassword) {
       throw new BadRequestException('Wrong credentials');
     }
-    console.log('user : ', user);
-    console.log('permissions : ', user.role.permissions);
-
     const permissions = user.role.permissions.map((permission) => `${permission.feature}:${permission.permission}`);
 
     return {
@@ -105,5 +102,11 @@ export class AuthService {
     console.log('input: ', input);
 
     return true;
+  }
+
+  async signOut(id: string) {
+    return this.userService.update(id, {
+      refresh_token: '',
+    });
   }
 }

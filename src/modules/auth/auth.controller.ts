@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Patch } from '@nestjs/common';
+import { Controller, Post, Body, Patch, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInAuthDto } from './dto/sign-in-auth.dto';
 import { SignUpAuthDto } from './dto/sign-up-auth.dto';
@@ -9,6 +9,8 @@ import { Response } from 'express';
 import { ConfigService } from '@nestjs/config';
 import { getExpirationTime } from 'src/shared/util/time.util';
 import { TOKENS } from 'src/shared/util/token.util';
+import { User } from 'src/shared/decorator/user.decorator';
+import { RequestUserData } from 'src/shared/interface/server.interface';
 
 @Controller({
   path: 'auth',
@@ -22,6 +24,7 @@ export class AuthController {
 
   @Post('/sign-in')
   @Public()
+  @HttpCode(HttpStatus.OK)
   async signIn(@Body() credentials: SignInAuthDto, @Res({ passthrough: true }) response: Response) {
     const { sessionData, refreshToken, accessToken } = await this.authService.signIn(credentials);
 
@@ -44,6 +47,7 @@ export class AuthController {
 
   @Post('/sign-up')
   @Public()
+  @HttpCode(HttpStatus.CREATED)
   signUp(@Body() input: SignUpAuthDto) {
     return this.authService.signUp(input);
   }
@@ -53,6 +57,21 @@ export class AuthController {
     return this.authService.changePassword(input);
   }
 
-  @Post()
-  signOut() {}
+  @Post('/sign-out')
+  @HttpCode(HttpStatus.OK)
+  async signOut(@User() user: RequestUserData, @Res({ passthrough: true }) response: Response): Promise<void> {
+    await this.authService.signOut(user.id);
+
+    response.clearCookie(TOKENS.ACCESS_TOKEN, {
+      httpOnly: true,
+      secure: this.configService.getOrThrow('NODE_ENV') === 'production', // Use secure in production
+      sameSite: 'strict',
+    });
+
+    response.clearCookie(TOKENS.REFRESH_TOKEN, {
+      httpOnly: true,
+      secure: this.configService.getOrThrow('NODE_ENV') === 'production', // Use secure in production
+      sameSite: 'strict',
+    });
+  }
 }

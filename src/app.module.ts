@@ -7,6 +7,9 @@ import { PermissionModule } from './modules/permission/permission.module';
 import { CompanyModule } from './modules/company/company.module';
 import { UserModule } from './modules/user/user.module';
 import { IsUnique } from './shared/util/validator/is-unique-validator.util';
+import { APP_GUARD } from '@nestjs/core';
+import { AccessGuard } from './shared/guard/access.guard';
+import { PermissionGuard } from './shared/guard/permission.guard';
 
 @Module({
   imports: [
@@ -20,6 +23,16 @@ import { IsUnique } from './shared/util/validator/is-unique-validator.util';
     CompanyModule,
     UserModule,
   ],
-  providers: [IsUnique],
+  providers: [
+    IsUnique,
+    {
+      provide: APP_GUARD,
+      useClass: AccessGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: PermissionGuard,
+    },
+  ],
 })
 export class AppModule {}

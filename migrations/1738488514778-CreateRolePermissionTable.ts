@@ -116,9 +116,9 @@ export class RolePermissionTable1738488514778 implements MigrationInterface {
 
   public async down(queryRunner: QueryRunner): Promise<void> {
     this.logger.log('DOWN - START');
+    await queryRunner.dropTable('role_permission');
     await queryRunner.dropTable('permission');
     await queryRunner.dropTable('role');
-    await queryRunner.dropTable('role_permission');
     this.logger.log('DOWN - COMPLETED');
   }
 }

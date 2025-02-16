@@ -1,34 +1,77 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete } from '@nestjs/common';
+import { Controller, Post, Body, Patch, HttpCode, HttpStatus } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { SignInAuthDto } from './dto/sign-in-auth.dto';
+import { SignUpAuthDto } from './dto/sign-up-auth.dto';
+import { Public } from 'src/shared/decorator/public.decorator';
+import { ChangePasswordAuthDto } from './dto/change-password-auth.dto';
+import { Res } from '@nestjs/common';
+import { Response } from 'express';
+import { ConfigService } from '@nestjs/config';
+import { getExpirationTime } from 'src/shared/util/time.util';
+import { TOKENS } from 'src/shared/util/token.util';
+import { User } from 'src/shared/decorator/user.decorator';
+import { RequestUserData } from 'src/shared/interface/server.interface';
 
-@Controller('auth')
+@Controller({
+  path: 'auth',
+  version: '1',
+})
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(
+    private readonly authService: AuthService,
+    private readonly configService: ConfigService,
+  ) {}
 
-  @Post()
-  create(@Body() createAuthDto: CreateAuthDto) {
-    return this.authService.create(createAuthDto);
+  @Post('/sign-in')
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  async signIn(@Body() credentials: SignInAuthDto, @Res({ passthrough: true }) response: Response) {
+    const { sessionData, refreshToken, accessToken } = await this.authService.signIn(credentials);
+
+    response.cookie(TOKENS.REFRESH_TOKEN, refreshToken, {
+      httpOnly: true,
+      secure: this.configService.getOrThrow('NODE_ENV') === 'production', // Use secure in production
+      sameSite: 'strict',
+      maxAge: getExpirationTime.days(30),
+    });
+
+    response.cookie(TOKENS.ACCESS_TOKEN, accessToken, {
+      httpOnly: true,
+      secure: this.configService.getOrThrow('NODE_ENV') === 'production', // Use secure in production
+      sameSite: 'strict',
+      maxAge: getExpirationTime.minutes(60),
+    });
+
+    return { sessionData };
   }
 
-  @Get()
-  findAll() {
-    return this.authService.findAll();
+  @Post('/sign-up')
+  @Public()
+  @HttpCode(HttpStatus.CREATED)
+  signUp(@Body() input: SignUpAuthDto) {
+    return this.authService.signUp(input);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.authService.findOne(+id);
+  @Patch()
+  changePassword(@Body() input: ChangePasswordAuthDto) {
+    return this.authService.changePassword(input);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateAuthDto: UpdateAuthDto) {
-    return this.authService.update(+id, updateAuthDto);
-  }
+  @Post('/sign-out')
+  @HttpCode(HttpStatus.OK)
+  async signOut(@User() user: RequestUserData, @Res({ passthrough: true }) response: Response): Promise<void> {
+    await this.authService.signOut(user.id);
 
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.authService.remove(+id);
+    response.clearCookie(TOKENS.ACCESS_TOKEN, {
+      httpOnly: true,
+      secure: this.configService.getOrThrow('NODE_ENV') === 'production', // Use secure in production
+      sameSite: 'strict',
+    });
+
+    response.clearCookie(TOKENS.REFRESH_TOKEN, {
+      httpOnly: true,
+      secure: this.configService.getOrThrow('NODE_ENV') === 'production', // Use secure in production
+      sameSite: 'strict',
+    });
   }
 }

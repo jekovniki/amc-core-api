@@ -5,13 +5,13 @@ export class Company {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, type: 'varchar' })
   name: string;
 
-  @Column({ unique: true })
+  @Column({ unique: true, type: 'varchar' })
   uic: string;
 
-  @Column()
+  @Column({ type: 'varchar' })
   logo: string;
 
   @Column({

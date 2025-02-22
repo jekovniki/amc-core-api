@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Patch, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Post, Body, Patch, HttpCode, HttpStatus, UseGuards } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { SignInAuthDto } from './dto/sign-in-auth.dto';
 import { SignUpAuthDto } from './dto/sign-up-auth.dto';
@@ -10,7 +10,9 @@ import { ConfigService } from '@nestjs/config';
 import { getExpirationTime } from 'src/shared/util/time.util';
 import { TOKENS } from 'src/shared/util/token.util';
 import { User } from 'src/shared/decorator/user.decorator';
-import { RequestUserData } from 'src/shared/interface/server.interface';
+import { RequestRefreshUserToken, RequestUserData } from 'src/shared/interface/server.interface';
+import { RefreshGuard } from 'src/shared/guard/refresh.guard';
+import { RefreshToken } from './decorator/refresh.decorator';
 
 @Controller({
   path: 'auth',
@@ -55,6 +57,28 @@ export class AuthController {
   @Patch()
   changePassword(@Body() input: ChangePasswordAuthDto) {
     return this.authService.changePassword(input);
+  }
+
+  @Public()
+  @UseGuards(RefreshGuard)
+  @Post('/refresh-token')
+  @HttpCode(HttpStatus.OK)
+  async refreshToken(@RefreshToken() user: RequestRefreshUserToken, @Res({ passthrough: true }) response: Response): Promise<void> {
+    const { accessToken, refreshToken } = await this.authService.refreshToken(user.id, user.refreshToken);
+
+    response.cookie(TOKENS.REFRESH_TOKEN, refreshToken, {
+      httpOnly: true,
+      secure: this.configService.getOrThrow('NODE_ENV') === 'production', // Use secure in production
+      sameSite: 'strict',
+      maxAge: getExpirationTime.days(30),
+    });
+
+    response.cookie(TOKENS.ACCESS_TOKEN, accessToken, {
+      httpOnly: true,
+      secure: this.configService.getOrThrow('NODE_ENV') === 'production', // Use secure in production
+      sameSite: 'strict',
+      maxAge: getExpirationTime.minutes(60),
+    });
   }
 
   @Post('/sign-out')

@@ -45,6 +45,7 @@ export class UserService {
           },
         );
 
+        // Send email here
         console.log(`The following token was send to email: ${user.email} . Token: ${registerToken}`);
       }),
     );
@@ -57,7 +58,15 @@ export class UserService {
   }
 
   async findOneById(id: string): Promise<User | null> {
-    return this.userRepository.findOneBy({ id });
+    return this.userRepository.findOne({
+      where: { id },
+      relations: {
+        role: {
+          permissions: true,
+        },
+        company: true,
+      },
+    });
   }
 
   async findOneByEmail(email: string): Promise<User | null> {

@@ -110,6 +110,53 @@ export class AuthService {
     return true;
   }
 
+  async refreshToken(userId: string, refreshToken: string) {
+    const user = await this.userService.findOneById(userId);
+
+    if (!user || !user?.refreshToken) {
+      throw new BadRequestException('Wrong credentials');
+    }
+
+    if (user.refreshToken !== refreshToken) {
+      throw new BadRequestException('Invalid request token');
+    }
+
+    const newRefreshToken = this.jwtService.sign(
+      {
+        iss: this.configService.getOrThrow('APP_URL'),
+        sub: user.id,
+        cid: user.company.id,
+        iat: Math.floor(Date.now() / 1000),
+      },
+      {
+        expiresIn: getExpirationTime.days(7),
+        secret: this.configService.getOrThrow('REFRESH_TOKEN_SECRET'),
+      },
+    );
+
+    await this.userService.update(user.id, { refreshToken });
+
+    const permissions = user.role.permissions.map((permission) => `${permission.feature}:${permission.permission}`);
+
+    return {
+      accessToken: this.jwtService.sign(
+        {
+          iss: this.configService.getOrThrow('APP_URL'),
+          sub: user.id,
+          cid: user.company.id,
+          role: user.role.name,
+          scope: permissions,
+          iat: Math.floor(Date.now() / 1000),
+        },
+        {
+          expiresIn: getExpirationTime.minutes(30),
+          secret: this.configService.getOrThrow('ACCESS_TOKEN_SECRET'),
+        },
+      ),
+      refreshToken: newRefreshToken,
+    };
+  }
+
   async signOut(id: string) {
     return this.userService.update(id, {
       refreshToken: '',

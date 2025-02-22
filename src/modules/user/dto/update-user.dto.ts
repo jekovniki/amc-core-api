@@ -7,7 +7,7 @@ export class UpdateUserDto {
 
   @IsNumber()
   @IsOptional()
-  role_id?: number;
+  roleId?: number;
 
   @IsString()
   @IsOptional()
@@ -31,5 +31,5 @@ export class UpdateUserDto {
 
   @IsString()
   @IsOptional()
-  refresh_token?: string;
+  refreshToken?: string;
 }

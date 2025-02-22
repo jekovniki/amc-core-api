@@ -36,6 +36,21 @@ export class AuthService {
     }
     const permissions = user.role.permissions.map((permission) => `${permission.feature}:${permission.permission}`);
 
+    const refreshToken = this.jwtService.sign(
+      {
+        iss: this.configService.getOrThrow('APP_URL'),
+        sub: user.id,
+        cid: user.company.id,
+        iat: Math.floor(Date.now() / 1000),
+      },
+      {
+        expiresIn: getExpirationTime.days(7),
+        secret: this.configService.getOrThrow('REFRESH_TOKEN_SECRET'),
+      },
+    );
+
+    await this.userService.update(user.id, { refreshToken });
+
     return {
       sessionData: btoa(
         JSON.stringify({
@@ -56,23 +71,14 @@ export class AuthService {
           cid: user.company.id,
           role: user.role.name,
           scope: permissions,
+          iat: Math.floor(Date.now() / 1000),
         },
         {
           expiresIn: getExpirationTime.minutes(30),
           secret: this.configService.getOrThrow('ACCESS_TOKEN_SECRET'),
         },
       ),
-      refreshToken: this.jwtService.sign(
-        {
-          iss: this.configService.getOrThrow('APP_URL'),
-          sub: user.id,
-          cid: user.company.id,
-        },
-        {
-          expiresIn: getExpirationTime.days(7),
-          secret: this.configService.getOrThrow('REFRESH_TOKEN_SECRET'),
-        },
-      ),
+      refreshToken: refreshToken,
     };
   }
 
@@ -98,15 +104,101 @@ export class AuthService {
     });
   }
 
-  changePassword(input: ChangePasswordAuthDto) {
-    console.log('input: ', input);
+  async requestPassword(id: string) {
+    const user = await this.userService.findOneById(id);
+    if (!user) {
+      throw new BadRequestException('User does not exist');
+    }
 
-    return true;
+    const resetPasswordToken = this.jwtService.sign(
+      {
+        iss: this.configService.getOrThrow('APP_URL'),
+        sub: user.id,
+        cid: user.company.id,
+        iat: Math.floor(Date.now() / 1000),
+      },
+      {
+        expiresIn: getExpirationTime.minutes(60),
+        secret: this.configService.getOrThrow('RESET_PASSWORD_TOKEN_SECRET'),
+      },
+    );
+
+    console.log(`User: ${user.email} requested new password. Token: ${resetPasswordToken}`);
+    // Send password email
+
+    return;
+  }
+
+  async changePassword(input: ChangePasswordAuthDto) {
+    const { sub } = this.jwtService.verify(input.changePasswordToken, {
+      secret: this.configService.getOrThrow('RESET_PASSWORD_TOKEN_SECRET'),
+    });
+
+    const user = await this.userService.findOneById(sub);
+    if (!user || user.email !== input.email) {
+      throw new BadRequestException('Invalid request');
+    }
+
+    const isSamePassword = await validateHash(input.password, user?.password || '');
+    if (isSamePassword) {
+      throw new BadRequestException('New password should not be the same as the old password');
+    }
+
+    return this.userService.update(sub, {
+      password: await hashData(input.password, this.configService),
+    });
+  }
+
+  async refreshToken(userId: string, refreshToken: string) {
+    const user = await this.userService.findOneById(userId);
+
+    if (!user || !user?.refreshToken) {
+      throw new BadRequestException('Wrong credentials');
+    }
+
+    if (user.refreshToken !== refreshToken) {
+      throw new BadRequestException('Invalid request token');
+    }
+
+    const newRefreshToken = this.jwtService.sign(
+      {
+        iss: this.configService.getOrThrow('APP_URL'),
+        sub: user.id,
+        cid: user.company.id,
+        iat: Math.floor(Date.now() / 1000),
+      },
+      {
+        expiresIn: getExpirationTime.days(7),
+        secret: this.configService.getOrThrow('REFRESH_TOKEN_SECRET'),
+      },
+    );
+
+    await this.userService.update(user.id, { refreshToken });
+
+    const permissions = user.role.permissions.map((permission) => `${permission.feature}:${permission.permission}`);
+
+    return {
+      accessToken: this.jwtService.sign(
+        {
+          iss: this.configService.getOrThrow('APP_URL'),
+          sub: user.id,
+          cid: user.company.id,
+          role: user.role.name,
+          scope: permissions,
+          iat: Math.floor(Date.now() / 1000),
+        },
+        {
+          expiresIn: getExpirationTime.minutes(30),
+          secret: this.configService.getOrThrow('ACCESS_TOKEN_SECRET'),
+        },
+      ),
+      refreshToken: newRefreshToken,
+    };
   }
 
   async signOut(id: string) {
     return this.userService.update(id, {
-      refresh_token: '',
+      refreshToken: '',
     });
   }
 }

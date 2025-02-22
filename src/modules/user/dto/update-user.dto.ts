@@ -33,3 +33,8 @@ export class UpdateUserDto {
   @IsOptional()
   refreshToken?: string;
 }
+
+export class UpdateUserStatusDto {
+  @IsBoolean()
+  status: boolean;
+}

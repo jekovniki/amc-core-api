@@ -86,11 +86,14 @@ export class UserService {
     });
   }
 
-  async update(id: string, updateUserDto: UpdateUserDto): Promise<UpdateResult> {
-    const user = await this.userRepository.findOneBy({ id });
+  async update(id: string, companyId: string, updateUserDto: UpdateUserDto): Promise<UpdateResult> {
+    const user = await this.findOneById(id);
 
     if (!user) {
       throw new NotFoundException(`User with ID ${id} not found`);
+    }
+    if (user.company.id !== companyId) {
+      throw new BadRequestException("You can't delete users from different companies");
     }
 
     let role;
@@ -117,7 +120,6 @@ export class UserService {
 
   async remove(id: string, companyId: string) {
     const user = await this.findOneById(id);
-
     if (!user) {
       return;
     }

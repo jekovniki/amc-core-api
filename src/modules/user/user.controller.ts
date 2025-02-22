@@ -15,7 +15,7 @@ import {
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
-import { UpdateUserDto } from './dto/update-user.dto';
+import { UpdateUserDto, UpdateUserStatusDto } from './dto/update-user.dto';
 import { Response, Request } from 'express';
 import { TOKENS } from 'src/shared/util/token.util';
 import { ConfigService } from '@nestjs/config';
@@ -75,10 +75,22 @@ export class UserController {
   @Permission('user:UPDATE')
   @HttpCode(HttpStatus.OK)
   async update(@User() user: RequestUserData, @Body() updateUserDto: UpdateUserDto) {
-    await this.userService.update(user.id, updateUserDto);
+    await this.userService.update(user.id, user.companyId, updateUserDto);
 
     return {
       id: user.id,
+      message: 'Successfully updated user',
+    };
+  }
+
+  @Patch('/status/:id')
+  @Permission('user:UPDATE')
+  @HttpCode(HttpStatus.OK)
+  async status(@User() user: RequestUserData, @Param('id') id: string, @Body() request: UpdateUserStatusDto) {
+    await this.userService.update(id, user.companyId, { active: request.status });
+
+    return {
+      id,
       message: 'Successfully updated user',
     };
   }

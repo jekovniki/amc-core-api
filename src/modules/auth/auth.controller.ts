@@ -90,7 +90,7 @@ export class AuthController {
   @Post('/sign-out')
   @HttpCode(HttpStatus.OK)
   async signOut(@User() user: RequestUserData, @Res({ passthrough: true }) response: Response): Promise<void> {
-    await this.authService.signOut(user.id);
+    await this.authService.signOut(user.id, user.companyId);
 
     response.clearCookie(TOKENS.ACCESS_TOKEN, {
       httpOnly: true,

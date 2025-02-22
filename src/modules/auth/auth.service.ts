@@ -49,7 +49,7 @@ export class AuthService {
       },
     );
 
-    await this.userService.update(user.id, { refreshToken });
+    await this.userService.update(user.id, user.company.id, { refreshToken });
 
     return {
       sessionData: btoa(
@@ -95,7 +95,7 @@ export class AuthService {
       throw new BadRequestException('User has already been registered');
     }
 
-    return this.userService.update(sub, {
+    return this.userService.update(sub, user.company.id, {
       password: await hashData(input.password, this.configService),
       firstName: input.firstName,
       lastName: input.lastName,
@@ -144,7 +144,7 @@ export class AuthService {
       throw new BadRequestException('New password should not be the same as the old password');
     }
 
-    return this.userService.update(sub, {
+    return this.userService.update(sub, user.company.id, {
       password: await hashData(input.password, this.configService),
     });
   }
@@ -173,7 +173,7 @@ export class AuthService {
       },
     );
 
-    await this.userService.update(user.id, { refreshToken });
+    await this.userService.update(user.id, user.company.id, { refreshToken });
 
     const permissions = user.role.permissions.map((permission) => `${permission.feature}:${permission.permission}`);
 
@@ -196,8 +196,8 @@ export class AuthService {
     };
   }
 
-  async signOut(id: string) {
-    return this.userService.update(id, {
+  async signOut(id: string, companyId: string) {
+    return this.userService.update(id, companyId, {
       refreshToken: '',
     });
   }

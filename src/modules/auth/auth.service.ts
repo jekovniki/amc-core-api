@@ -36,6 +36,21 @@ export class AuthService {
     }
     const permissions = user.role.permissions.map((permission) => `${permission.feature}:${permission.permission}`);
 
+    const refreshToken = this.jwtService.sign(
+      {
+        iss: this.configService.getOrThrow('APP_URL'),
+        sub: user.id,
+        cid: user.company.id,
+        iat: Math.floor(Date.now() / 1000),
+      },
+      {
+        expiresIn: getExpirationTime.days(7),
+        secret: this.configService.getOrThrow('REFRESH_TOKEN_SECRET'),
+      },
+    );
+
+    await this.userService.update(user.id, { refreshToken });
+
     return {
       sessionData: btoa(
         JSON.stringify({
@@ -56,23 +71,14 @@ export class AuthService {
           cid: user.company.id,
           role: user.role.name,
           scope: permissions,
+          iat: Math.floor(Date.now() / 1000),
         },
         {
           expiresIn: getExpirationTime.minutes(30),
           secret: this.configService.getOrThrow('ACCESS_TOKEN_SECRET'),
         },
       ),
-      refreshToken: this.jwtService.sign(
-        {
-          iss: this.configService.getOrThrow('APP_URL'),
-          sub: user.id,
-          cid: user.company.id,
-        },
-        {
-          expiresIn: getExpirationTime.days(7),
-          secret: this.configService.getOrThrow('REFRESH_TOKEN_SECRET'),
-        },
-      ),
+      refreshToken: refreshToken,
     };
   }
 
@@ -106,7 +112,7 @@ export class AuthService {
 
   async signOut(id: string) {
     return this.userService.update(id, {
-      refresh_token: '',
+      refreshToken: '',
     });
   }
 }

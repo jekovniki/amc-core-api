@@ -80,10 +80,10 @@ export class UserService {
     }
 
     let role;
-    if (updateUserDto.role_id !== undefined) {
-      role = await this.roleService.findById(updateUserDto.role_id);
+    if (updateUserDto.roleId !== undefined) {
+      role = await this.roleService.findById(updateUserDto.roleId);
       if (!role) {
-        throw new NotFoundException(`Role with ID ${updateUserDto.role_id} not found`);
+        throw new NotFoundException(`Role with ID ${updateUserDto.roleId} not found`);
       }
     }
 
@@ -96,6 +96,7 @@ export class UserService {
     if (updateUserDto.password !== undefined) updateData.password = updateUserDto.password;
     if (updateUserDto.active !== undefined) updateData.active = updateUserDto.active;
     if (role !== undefined) updateData.role = role;
+    if (updateUserDto.refreshToken !== undefined) updateData.refreshToken = updateUserDto.refreshToken;
 
     return this.userRepository.update(id, updateData);
   }

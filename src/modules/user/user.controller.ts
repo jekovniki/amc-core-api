@@ -60,13 +60,13 @@ export class UserController {
   }
 
   @Get()
-  @Permission('user:READ')
+  @Permission('users:READ')
   findAll(@User() user: RequestUserData) {
     return this.userService.findAllByCompanyId(user.companyId);
   }
 
   @Get(':id')
-  @Permission('user:READ')
+  @Permission('users:READ')
   findOne(@Param('id') id: string) {
     return this.userService.findOneById(id);
   }
@@ -84,7 +84,7 @@ export class UserController {
   }
 
   @Patch('/status/:id')
-  @Permission('user:UPDATE')
+  @Permission('users:UPDATE')
   @HttpCode(HttpStatus.OK)
   async status(@User() user: RequestUserData, @Param('id') id: string, @Body() request: UpdateUserStatusDto) {
     await this.userService.update(id, user.companyId, { active: request.status });
@@ -96,7 +96,7 @@ export class UserController {
   }
 
   @Delete(':id')
-  @Permission('user:DELETE')
+  @Permission('users:DELETE')
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@User() user: RequestUserData, @Param('id') id: string) {
     if (user.id === id) {

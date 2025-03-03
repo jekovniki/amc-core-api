@@ -8,9 +8,6 @@ export class Entity {
   @Column({ unique: true })
   name: string;
 
-  @Column()
-  description: string;
-
   constructor(permission: Partial<Entity>) {
     Object.assign(this, permission);
   }

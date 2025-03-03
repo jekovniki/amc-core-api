@@ -25,12 +25,6 @@ export class CreateEntitiesTable1740905201847 implements MigrationInterface {
             isUnique: true,
             isNullable: false,
           },
-          {
-            name: 'description',
-            type: 'varchar',
-            isUnique: true,
-            isNullable: false,
-          },
         ],
       }),
       true,

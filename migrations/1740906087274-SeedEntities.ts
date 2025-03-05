@@ -3,7 +3,7 @@ import { MigrationInterface, QueryRunner } from 'typeorm';
 
 export class SeedEntities1740906087274 implements MigrationInterface {
   private readonly logger = new Logger(SeedEntities1740906087274.name);
-  private readonly tableName = 'entity';
+  private readonly tableName = 'entity_type';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     this.logger.log('UP - START');

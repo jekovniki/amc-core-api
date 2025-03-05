@@ -1,4 +1,5 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Entity as CompanyEntity } from 'src/modules/entity/entities/entity.entity';
 
 @Entity()
 export class Company {
@@ -19,6 +20,9 @@ export class Company {
     default: true,
   })
   active: boolean;
+
+  @OneToMany(() => CompanyEntity, (entity) => entity.company)
+  entities: CompanyEntity[];
 
   @CreateDateColumn({
     name: 'created_at',

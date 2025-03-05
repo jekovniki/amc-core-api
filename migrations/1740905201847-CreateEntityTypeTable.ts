@@ -1,9 +1,9 @@
 import { Logger } from '@nestjs/common';
 import { MigrationInterface, QueryRunner, Table } from 'typeorm';
 
-export class CreateEntitiesTable1740905201847 implements MigrationInterface {
-  private readonly logger = new Logger(CreateEntitiesTable1740905201847.name);
-  private readonly tableName = 'entity';
+export class CreateEntityTypeTable1740905201847 implements MigrationInterface {
+  private readonly logger = new Logger(CreateEntityTypeTable1740905201847.name);
+  private readonly tableName = 'entity_type';
 
   public async up(queryRunner: QueryRunner): Promise<void> {
     this.logger.log('UP - START');

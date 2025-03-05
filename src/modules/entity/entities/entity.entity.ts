@@ -1,14 +1,60 @@
-import { Column, Entity as DBEntity, PrimaryGeneratedColumn } from 'typeorm';
+import {
+  Column,
+  CreateDateColumn,
+  Entity as TypeORMEntity,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+  UpdateDateColumn,
+  JoinColumn,
+} from 'typeorm';
+import { Company } from 'src/modules/company/entities/company.entity';
+import { EntityType } from './entity-type.entity';
 
-@DBEntity('entity')
+type StatusType = 'ACTIVE' | 'INACTIVE';
+
+@TypeORMEntity('entity')
 export class Entity {
-  @PrimaryGeneratedColumn()
-  id: number;
+  @PrimaryGeneratedColumn('uuid')
+  id: string;
 
-  @Column({ unique: true })
+  @Column({ type: 'varchar', unique: true })
   name: string;
 
-  constructor(permission: Partial<Entity>) {
-    Object.assign(this, permission);
+  @Column({ type: 'varchar', unique: true })
+  uic: string;
+
+  @Column({ type: 'varchar', unique: true })
+  lei: string;
+
+  @ManyToOne(() => Company, (company) => company.entities)
+  @JoinColumn({ name: 'company_id' })
+  company: Company;
+
+  @ManyToOne(() => EntityType, (entityType) => entityType.entities)
+  @JoinColumn({ name: 'entity_type_id' })
+  entityType: EntityType;
+
+  @Column({
+    type: 'enum',
+    enum: ['ACTIVE', 'INACTIVE'],
+  })
+  status: StatusType;
+
+  @CreateDateColumn({
+    name: 'created_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  createdAt: Date;
+
+  @UpdateDateColumn({
+    name: 'updated_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
+  updatedAt: Date;
+
+  constructor(entity: Partial<Entity>) {
+    Object.assign(this, entity);
   }
 }

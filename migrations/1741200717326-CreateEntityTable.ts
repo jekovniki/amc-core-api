@@ -22,17 +22,17 @@ export class CreateEntityTable1741200717326 implements MigrationInterface {
           {
             name: 'name',
             type: 'varchar',
-            isUnique: true,
+            // isUnique: true, // no need for is unique, it will be handled from typeorm
           },
           {
             name: 'uic',
             type: 'varchar',
-            isUnique: true,
+            // isUnique: true // no need for is unique, it will be handled from typeorm
           },
           {
             name: 'lei',
             type: 'varchar',
-            isUnique: true,
+            // isUnique: true, // no need for is unique, it will be handled from typeorm
           },
           {
             name: 'company_id',

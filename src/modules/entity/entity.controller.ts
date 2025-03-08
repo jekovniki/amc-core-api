@@ -10,8 +10,9 @@ export class EntityController {
   constructor(private readonly entitiesService: EntityService) {}
 
   @Public()
-  @Get('/types')
+  @Get('/type')
   findAll() {
+    console.log(1);
     return this.entitiesService.findAll();
   }
 }

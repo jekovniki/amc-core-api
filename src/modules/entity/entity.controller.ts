@@ -1,10 +1,11 @@
-import { BadRequestException, Body, Controller, Get, Post } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Get, Param, Patch, Post } from '@nestjs/common';
 import { EntityService } from './entity.service';
 import { Public } from 'src/shared/decorator/public.decorator';
 import { Permission } from 'src/shared/decorator/permission.decorator';
 import { CreateEntityDto } from './dto/create-entity.dto';
 import { User } from 'src/shared/decorator/user.decorator';
 import { RequestUserData } from 'src/shared/interface/server.interface';
+import { UpdateEntityDto } from './dto/update-entity.dto';
 
 @Controller({
   path: 'entity',
@@ -33,7 +34,7 @@ export class EntityController {
     const entityTypes = await this.entitiesService.findAllTypes();
     const entityIds = entityTypes.map((entity) => entity.id);
     if (name) {
-      validateError.push('Name already exist in this context');
+      validateError.push('name already exist in this context');
     }
     if (uic) {
       validateError.push('uic already exists in this context');
@@ -55,5 +56,10 @@ export class EntityController {
   @Permission('entity:READ')
   async getComapnyEntities(@User() user: RequestUserData) {
     return this.entitiesService.findAllCompanyEntities(user.companyId);
+  }
+
+  @Patch('/:id')
+  async update(@Body() input: UpdateEntityDto, @User() user: RequestUserData, @Param('id') id: string) {
+    return this.entitiesService.update(input, id, user.companyId);
   }
 }

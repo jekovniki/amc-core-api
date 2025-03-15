@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -6,7 +6,7 @@ import { User } from './entities/user.entity';
 import { Repository, UpdateResult } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { RoleService } from '../role/role.service';
+import { RoleService } from '../auth/role.service';
 import { getExpirationTime } from 'src/shared/util/time.util';
 
 @Injectable()
@@ -16,6 +16,7 @@ export class UserService {
     private readonly userRepository: Repository<User>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    @Inject(forwardRef(() => RoleService))
     private readonly roleService: RoleService,
   ) {}
 

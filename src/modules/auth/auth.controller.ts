@@ -13,6 +13,7 @@ import { User } from 'src/shared/decorator/user.decorator';
 import { RequestRefreshUserToken, RequestUserData } from 'src/shared/interface/server.interface';
 import { RefreshGuard } from 'src/shared/guard/refresh.guard';
 import { RefreshToken } from './decorator/refresh.decorator';
+import { RoleService } from './role.service';
 
 @Controller({
   path: 'auth',
@@ -22,6 +23,7 @@ export class AuthController {
   constructor(
     private readonly authService: AuthService,
     private readonly configService: ConfigService,
+    private readonly roleService: RoleService,
   ) {}
 
   @Post('/sign-in')
@@ -103,5 +105,15 @@ export class AuthController {
       secure: this.configService.getOrThrow('NODE_ENV') === 'production', // Use secure in production
       sameSite: 'strict',
     });
+  }
+
+  @Public()
+  @Get('/role')
+  async findAll() {
+    try {
+      return this.roleService.findAll();
+    } catch (error) {
+      return null;
+    }
   }
 }

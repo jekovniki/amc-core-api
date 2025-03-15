@@ -1,5 +1,5 @@
 import { Company } from 'src/modules/company/entities/company.entity';
-import { Role } from 'src/modules/role/entities/role.entity';
+import { Role } from 'src/modules/auth/entities/role.entity';
 import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 
 @Entity()

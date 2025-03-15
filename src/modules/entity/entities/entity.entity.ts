@@ -6,9 +6,11 @@ import {
   PrimaryGeneratedColumn,
   UpdateDateColumn,
   JoinColumn,
+  OneToMany,
 } from 'typeorm';
 import { Company } from 'src/modules/company/entities/company.entity';
 import { EntityType } from './entity-type.entity';
+import { Obligation } from 'src/modules/obligations/entities/obligation.entity';
 
 type StatusType = 'ACTIVE' | 'INACTIVE';
 
@@ -33,6 +35,9 @@ export class Entity {
   @ManyToOne(() => EntityType, (entityType) => entityType.entities)
   @JoinColumn({ name: 'entity_type_id' })
   entityType: EntityType;
+
+  @OneToMany(() => Obligation, (obligation) => obligation.entity)
+  obligation: Obligation;
 
   @Column({
     type: 'enum',

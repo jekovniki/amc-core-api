@@ -9,6 +9,7 @@ import { APP_GUARD } from '@nestjs/core';
 import { AccessGuard } from './shared/guard/access.guard';
 import { PermissionGuard } from './shared/guard/permission.guard';
 import { EntityModule } from './modules/entity/entity.module';
+import { ObligationsModule } from './modules/obligations/obligations.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { EntityModule } from './modules/entity/entity.module';
     CompanyModule,
     UserModule,
     EntityModule,
+    ObligationsModule,
   ],
   providers: [
     IsUnique,

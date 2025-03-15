@@ -1,6 +1,7 @@
 import { Company } from 'src/modules/company/entities/company.entity';
 import { Role } from 'src/modules/auth/entities/role.entity';
-import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Column, CreateDateColumn, Entity, JoinColumn, ManyToOne, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
+import { Obligation } from 'src/modules/obligations/entities/obligation.entity';
 
 @Entity()
 export class User {
@@ -38,6 +39,10 @@ export class User {
 
   @Column({ name: 'refresh_token', type: 'varchar', default: null })
   refreshToken: string | null;
+
+  @OneToMany(() => Obligation, (obligation) => obligation.createdBy)
+  @OneToMany(() => Obligation, (obligation) => obligation.updatedBy)
+  obligation: Obligation;
 
   @CreateDateColumn({
     name: 'created_at',

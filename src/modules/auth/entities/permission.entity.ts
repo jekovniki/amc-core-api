@@ -1,4 +1,4 @@
-import { Role } from 'src/modules/role/entities/role.entity';
+import { Role } from './role.entity';
 import { Column, Entity, ManyToMany, PrimaryGeneratedColumn } from 'typeorm';
 
 type PermissionType = 'READ' | 'CREATE' | 'UPDATE' | 'DELETE';

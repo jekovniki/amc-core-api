@@ -50,7 +50,6 @@ export class AuthService {
     );
 
     await this.userService.update(user.id, user.company.id, { refreshToken });
-
     return {
       sessionData: btoa(
         JSON.stringify({

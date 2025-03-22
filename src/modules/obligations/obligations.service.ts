@@ -1,6 +1,5 @@
 import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { CreateObligationDto } from './dto/create-obligation.dto';
-// import { UpdateObligationDto } from './dto/update-obligation.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Obligation } from './entities/obligation.entity';
 import { Repository } from 'typeorm';
@@ -31,10 +30,6 @@ export class ObligationsService {
 
     return this.obligationRepository.save(newObligation);
   }
-
-  //   findAll() {
-  //     return `This action returns all obligations`;
-  //   }
 
   findOne(query: string, type: 'id' | 'companyId' | 'entityId' | 'status' = 'companyId') {
     if (type === 'status') {

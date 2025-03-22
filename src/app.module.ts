@@ -10,6 +10,7 @@ import { AccessGuard } from './shared/guard/access.guard';
 import { PermissionGuard } from './shared/guard/permission.guard';
 import { EntityModule } from './modules/entity/entity.module';
 import { ObligationsModule } from './modules/obligations/obligations.module';
+import { WalletModule } from './modules/wallet/wallet.module';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ObligationsModule } from './modules/obligations/obligations.module';
     UserModule,
     EntityModule,
     ObligationsModule,
+    WalletModule,
   ],
   providers: [
     IsUnique,

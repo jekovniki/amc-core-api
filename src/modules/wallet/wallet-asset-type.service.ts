@@ -1,8 +1,9 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WalletAssetType } from './entities/wallet-asset-type.entity';
 import { IsNull, Repository } from 'typeorm';
 import { CreateWalletAssetTypeDto } from './dto/create-wallet-asset-type.dto';
+import { UpdateWalletAssetTypeDto } from './dto/update-wallet-asset-type.dto';
 
 @Injectable()
 export class WalletAssetTypeService {
@@ -11,26 +12,15 @@ export class WalletAssetTypeService {
     private readonly walletAssetTypeRepository: Repository<WalletAssetType>,
   ) {}
 
-  async create(input: CreateWalletAssetTypeDto, entityId: string, companyId: string) {
-    try {
-      const assetType = this.walletAssetTypeRepository.create({
-        ...input,
-        company: {
-          id: companyId,
-        },
-        entity: {
-          id: entityId,
-        },
-      });
+  async create(input: CreateWalletAssetTypeDto, companyId: string) {
+    const assetType = this.walletAssetTypeRepository.create({
+      ...input,
+      company: {
+        id: companyId,
+      },
+    });
 
-      await this.walletAssetTypeRepository.save(assetType);
-    } catch (error) {
-      if (error.message.includes('violates foreign key constraint')) {
-        throw new BadRequestException('Please provide a valid entity');
-      }
-
-      throw new InternalServerErrorException();
-    }
+    return await this.walletAssetTypeRepository.save(assetType);
   }
 
   findAll(companyId: string) {
@@ -46,15 +36,38 @@ export class WalletAssetTypeService {
     });
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} wallet`;
+  async update(id: number, input: UpdateWalletAssetTypeDto, companyId: string) {
+    const item = await this.walletAssetTypeRepository.findOne({
+      where: {
+        id,
+      },
+      relations: ['company'],
+    });
+    if (!item) {
+      throw new NotFoundException(['Wallet id does not exist']);
+    }
+    const isNativeAssetType = item.company === null;
+    const isCompanyAssetType = item?.company?.id === companyId;
+    if (isNativeAssetType || isCompanyAssetType === false) {
+      throw new BadRequestException(`You can't edit this asset`);
+    }
+
+    return await this.walletAssetTypeRepository.save(input);
   }
 
-  update(id: number) {
-    return `This action updates a #${id} wallet`;
-  }
+  async remove(id: number, companyId: string) {
+    const item = await this.walletAssetTypeRepository.findOne({
+      where: {
+        id,
+        company: {
+          id: companyId,
+        },
+      },
+    });
+    if (!item) {
+      throw new BadRequestException(`You can't delete this asset`);
+    }
 
-  remove(id: number) {
-    return `This action removes a #${id} wallet`;
+    await this.walletAssetTypeRepository.delete({ id });
   }
 }

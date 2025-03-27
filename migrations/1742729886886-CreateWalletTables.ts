@@ -31,12 +31,6 @@ export class CreateWalletTables1742729886886 implements MigrationInterface {
             isNullable: true,
             default: null,
           },
-          {
-            name: 'entity_id',
-            type: 'uuid',
-            isNullable: true,
-            default: null,
-          },
         ],
       }),
       true,
@@ -47,16 +41,6 @@ export class CreateWalletTables1742729886886 implements MigrationInterface {
       new TableForeignKey({
         columnNames: ['company_id'],
         referencedTableName: 'company',
-        referencedColumnNames: ['id'],
-        onDelete: 'CASCADE',
-      }),
-    );
-
-    await queryRunner.createForeignKey(
-      this.walletAssetTypeTable,
-      new TableForeignKey({
-        columnNames: ['entity_id'],
-        referencedTableName: 'entity',
         referencedColumnNames: ['id'],
         onDelete: 'CASCADE',
       }),

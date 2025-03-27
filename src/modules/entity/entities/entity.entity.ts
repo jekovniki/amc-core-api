@@ -12,7 +12,6 @@ import { Company } from 'src/modules/company/entities/company.entity';
 import { EntityType } from './entity-type.entity';
 import { Obligation } from 'src/modules/obligations/entities/obligation.entity';
 import { Wallet } from 'src/modules/wallet/entities/wallet.entity';
-import { WalletAssetType } from 'src/modules/wallet/entities/wallet-asset-type.entity';
 
 type StatusType = 'ACTIVE' | 'INACTIVE';
 
@@ -43,9 +42,6 @@ export class Entity {
 
   @OneToMany(() => Wallet, (wallet) => wallet.entity)
   wallet: Wallet[];
-
-  @OneToMany(() => WalletAssetType, (wallet) => wallet.entity)
-  walletAssetType: WalletAssetType[];
 
   @Column({
     type: 'enum',

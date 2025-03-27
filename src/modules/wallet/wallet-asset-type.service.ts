@@ -1,7 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WalletAssetType } from './entities/wallet-asset-type.entity';
-import { Repository } from 'typeorm';
+import { IsNull, Repository } from 'typeorm';
+import { CreateWalletAssetTypeDto } from './dto/create-wallet-asset-type.dto';
 
 @Injectable()
 export class WalletAssetTypeService {
@@ -10,15 +11,38 @@ export class WalletAssetTypeService {
     private readonly walletAssetTypeRepository: Repository<WalletAssetType>,
   ) {}
 
-  create() {
-    return 'This action adds a new wallet';
+  async create(input: CreateWalletAssetTypeDto, entityId: string, companyId: string) {
+    try {
+      const assetType = this.walletAssetTypeRepository.create({
+        ...input,
+        company: {
+          id: companyId,
+        },
+        entity: {
+          id: entityId,
+        },
+      });
+
+      await this.walletAssetTypeRepository.save(assetType);
+    } catch (error) {
+      if (error.message.includes('violates foreign key constraint')) {
+        throw new BadRequestException('Please provide a valid entity');
+      }
+
+      throw new InternalServerErrorException();
+    }
   }
 
   findAll(companyId: string) {
-    return this.walletAssetTypeRepository.findBy({
-      company: {
-        id: companyId,
-      },
+    return this.walletAssetTypeRepository.find({
+      where: [
+        {
+          company: { id: companyId },
+        },
+        {
+          company: IsNull(),
+        },
+      ],
     });
   }
 

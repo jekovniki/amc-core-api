@@ -52,7 +52,12 @@ export class WalletAssetTypeService {
       throw new BadRequestException(`You can't edit this asset`);
     }
 
-    return await this.walletAssetTypeRepository.save(input);
+    return await this.walletAssetTypeRepository.update(id, {
+      ...input,
+      company: {
+        id: companyId,
+      },
+    });
   }
 
   async remove(id: number, companyId: string) {

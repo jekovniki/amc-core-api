@@ -1,14 +1,14 @@
 import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, HttpCode, HttpStatus } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { CreateWalletDto } from './dto/create-wallet.dto';
-import { UpdateWalletDto } from './dto/update-wallet.dto';
+// import { UpdateWalletDto } from './dto/update-wallet.dto';
 import { WalletAssetTypeService } from './wallet-asset-type.service';
 import { User } from 'src/shared/decorator/user.decorator';
 import { RequestUserData } from 'src/shared/interface/server.interface';
 import { Permission } from 'src/shared/decorator/permission.decorator';
 import { CreateWalletAssetTypeDto } from './dto/create-wallet-asset-type.dto';
 import { UpdateWalletAssetTypeDto } from './dto/update-wallet-asset-type.dto';
-import { isNumberString } from 'class-validator';
+import { isNumberString, isUUID } from 'class-validator';
 
 @Controller({
   path: 'wallet',
@@ -53,9 +53,13 @@ export class WalletController {
     return this.walletAssetTypeService.remove(+assetId, user.companyId);
   }
 
-  @Post()
-  create(@Body() createWalletDto: CreateWalletDto) {
-    return this.walletService.create(createWalletDto);
+  @Post('/:entityId')
+  @Permission('entity:CREATE')
+  create(@Param('entityId') entityId: string, @Body() createWalletDto: CreateWalletDto, @User() user: RequestUserData) {
+    if (!entityId || !isUUID(entityId)) {
+      throw new BadRequestException('Please enter valid entity id');
+    }
+    return this.walletService.createWithStreaming(createWalletDto, entityId, user.companyId);
   }
 
   @Get()
@@ -68,10 +72,10 @@ export class WalletController {
     return this.walletService.findOne(+id);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateWalletDto: UpdateWalletDto) {
-    return this.walletService.update(+id, updateWalletDto);
-  }
+  //   @Patch(':id')
+  //   update(@Param('id') id: string, @Body() updateWalletDto: UpdateWalletDto) {
+  //     return this.walletService.update(+id, updateWalletDto);
+  //   }
 
   @Delete(':id')
   remove(@Param('id') id: string) {

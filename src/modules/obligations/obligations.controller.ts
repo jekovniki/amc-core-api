@@ -43,7 +43,7 @@ export class ObligationsController {
 
     const isCompanyEntity = allEntities.some((entity) => entity.id === entityId);
     if (!isCompanyEntity) {
-      throw new BadRequestException('Please enter valid comapny entity');
+      throw new BadRequestException('Please enter valid company entity');
     }
     return this.obligationsService.create(createObligationDto, entityId, user);
   }

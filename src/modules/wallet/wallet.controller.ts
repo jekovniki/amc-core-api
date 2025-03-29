@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, HttpCode, HttpStatus } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, HttpCode, HttpStatus, Query } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { WalletAssetTypeService } from './wallet-asset-type.service';
@@ -8,7 +8,8 @@ import { Permission } from 'src/shared/decorator/permission.decorator';
 import { CreateWalletAssetTypeDto } from './dto/create-wallet-asset-type.dto';
 import { UpdateWalletAssetTypeDto } from './dto/update-wallet-asset-type.dto';
 import { isEnum, isNumberString, isUUID } from 'class-validator';
-import { WalletStructureFilter } from './dto/wallet.enum';
+import { AssetQueryParamFilter, WalletStructureFilter } from './dto/wallet.enum';
+import { AssetQueryParams } from './dto/wallet.type';
 
 @Controller({
   path: 'wallet',
@@ -64,7 +65,7 @@ export class WalletController {
 
   @Get('/:entityId/:filter')
   @Permission('entity:READ')
-  findAll(@Param('entityId') entityId: string, @Param('filter') filter: string, @User() user: RequestUserData) {
+  getStructure(@Param('entityId') entityId: string, @Param('filter') filter: string, @User() user: RequestUserData) {
     if (!entityId || !isUUID(entityId)) {
       throw new BadRequestException('Please enter valid entity id');
     }
@@ -72,5 +73,24 @@ export class WalletController {
       throw new BadRequestException('Please enter valid filter');
     }
     return this.walletService.getWalletStructure(filter as WalletStructureFilter, entityId, user.companyId);
+  }
+
+  // @note : this will need improvement, but let's see the business first
+  @Get('/asset/')
+  @Permission('entity:READ')
+  getAsset(@Query() queryParams: AssetQueryParams, @User() user: RequestUserData) {
+    if (!queryParams) {
+      throw new BadRequestException('Please provide query params');
+    }
+
+    if (!queryParams.entityId || !isUUID(queryParams.entityId)) {
+      throw new BadRequestException('Please enter valid entity id');
+    }
+
+    if (!queryParams.selectBy || !isEnum(queryParams.selectBy, AssetQueryParamFilter)) {
+      throw new BadRequestException('Invalid query params');
+    }
+
+    return this.walletService.getAsset(queryParams.value, queryParams.selectBy, queryParams.entityId, user.companyId);
   }
 }

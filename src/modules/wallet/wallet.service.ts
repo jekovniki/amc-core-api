@@ -5,7 +5,7 @@ import { Wallet } from './entities/wallet.entity';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { isNumber } from 'class-validator';
-import { WalletStructureFilter } from './dto/wallet.enum';
+import { AssetQueryParamFilter, WalletStructureFilter } from './dto/wallet.enum';
 import { GetWalletStructureResponse } from './dto/wallet.type';
 
 @Injectable()
@@ -52,6 +52,37 @@ export class WalletService {
     }
 
     return wallets;
+  }
+
+  async getAsset(value: string, selectBy: AssetQueryParamFilter, entityId: string, companyId: string) {
+    const [items, count] = await this.walletRepository.findAndCount({
+      where: {
+        [selectBy]: value,
+        entity: {
+          id: entityId,
+        },
+        company: {
+          id: companyId,
+        },
+      },
+    });
+    let totalAmount = 0;
+    if (!items || !items.length) {
+      return {
+        assets: [],
+        totalAmount,
+        total: 0,
+      };
+    }
+    for (const item of items) {
+      totalAmount += Number(item.value);
+    }
+
+    return {
+      assets: items,
+      totalAmount: Number(totalAmount.toFixed(2)),
+      total: count,
+    };
   }
 
   async getWalletStructure(groupBy: WalletStructureFilter, entityId: string, companyId: string) {

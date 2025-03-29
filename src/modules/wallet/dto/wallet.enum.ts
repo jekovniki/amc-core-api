@@ -10,3 +10,8 @@ export enum WalletStructureFilter {
   Currency = 'currency',
   AssetType = 'asset_type_id',
 }
+
+export enum AssetQueryParamFilter {
+  Code = 'code',
+  ISIN = 'isin',
+}

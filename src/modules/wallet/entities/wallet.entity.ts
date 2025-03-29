@@ -27,7 +27,7 @@ export class Wallet {
   @Column({ nullable: true })
   isin: string;
 
-  @Column()
+  @Column({ type: 'decimal', precision: 18, scale: 2 })
   value: number;
 
   @Column({

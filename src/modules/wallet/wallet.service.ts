@@ -1,11 +1,12 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateWalletDto } from './dto/create-wallet.dto';
-// import { UpdateWalletDto } from './dto/update-wallet.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Wallet } from './entities/wallet.entity';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { isNumber } from 'class-validator';
+import { WalletStructureFilter } from './dto/wallet.enum';
+import { GetWalletStructureResponse } from './dto/wallet.type';
 
 @Injectable()
 export class WalletService {
@@ -53,19 +54,38 @@ export class WalletService {
     return wallets;
   }
 
-  findAll() {
-    return `This action returns all wallet`;
-  }
+  async getWalletStructure(groupBy: WalletStructureFilter, entityId: string, companyId: string) {
+    const walletStructure: GetWalletStructureResponse[] = await this.walletRepository.query(
+      `
+        SELECT
+            COALESCE(${groupBy}::text, 'TOTAL') as "groupKey",
+            COUNT(*) as "assetCount",
+            SUM(value) as "totalValue",
+            CASE
+                WHEN ${groupBy} IS NULL THEN 100.0
+                ELSE ROUND ((SUM(value) / (
+                SELECT SUM(value) FROM wallet
+                WHERE company_id = $1
+                AND entity_id = $2)) * 100, 2)
+            END as percentage
+        FROM wallet
+        WHERE
+            company_id = $1
+            AND entity_id = $2
+        GROUP BY ROLLUP(${groupBy})
+        ORDER BY
+            CASE
+                WHEN ${groupBy} IS NULL THEN 1
+                ELSE 0
+            END,
+            "totalValue" DESC;
+        `,
+      [companyId, entityId],
+    );
 
-  findOne(id: number) {
-    return `This action returns a #${id} wallet`;
-  }
-
-  //   update(id: number, updateWalletDto: UpdateWalletDto) {
-  //     return `This action updates a #${id} wallet`;
-  //   }
-
-  remove(id: number) {
-    return `This action removes a #${id} wallet`;
+    return {
+      overview: walletStructure?.find((item) => item.groupKey === 'TOTAL'),
+      assets: walletStructure?.filter((item) => item.groupKey !== 'TOTAL'),
+    };
   }
 }

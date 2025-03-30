@@ -78,8 +78,39 @@ export class WalletService {
       totalAmount += Number(item.value);
     }
 
+    const countMap = new Map();
+    const valueMap = new Map();
+    const key = selectBy === AssetQueryParamFilter.Code ? AssetQueryParamFilter.ISIN : selectBy;
+
+    for (const item of items) {
+      const itemKey = item[key];
+      if (!countMap.has(itemKey)) {
+        countMap.set(itemKey, 1);
+        valueMap.set(itemKey, Number(item.value));
+      } else {
+        countMap.set(itemKey, countMap.get(itemKey) + 1);
+        valueMap.set(itemKey, valueMap.get(itemKey) + Number(item.value));
+      }
+    }
+
+    let uniqueItems = undefined;
+    if (selectBy === AssetQueryParamFilter.ISIN) {
+      uniqueItems = [...new Map(items.map((item) => [item[selectBy], item])).values()];
+    } else {
+      uniqueItems = [...new Map(items.map((item) => [item[AssetQueryParamFilter.ISIN], item])).values()];
+    }
+
+    uniqueItems = uniqueItems.map((item) => {
+      const itemKey = item[key];
+      return {
+        ...item,
+        total: countMap.get(itemKey),
+        totalAmount: Number((countMap.get(itemKey) * Number(item.value)).toFixed(2)),
+      };
+    });
+
     return {
-      assets: items,
+      assets: uniqueItems,
       totalAmount: Number(totalAmount.toFixed(2)),
       total: count,
     };

@@ -44,7 +44,7 @@ export class WalletController {
   }
 
   @Delete('/asset-type/:assetId')
-  @Permission('entity:UPDATE')
+  @Permission('entity:DELETE')
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeAssetType(@Param('assetId') assetId: string, @User() user: RequestUserData) {
     if (!isNumberString(assetId)) {
@@ -75,7 +75,6 @@ export class WalletController {
     return this.walletService.getWalletStructure(filter as WalletStructureFilter, entityId, user.companyId);
   }
 
-  // @note : this will need improvement, but let's see the business first
   @Get('/asset/')
   @Permission('entity:READ')
   getAsset(@Query() queryParams: AssetQueryParams, @User() user: RequestUserData) {
@@ -92,5 +91,13 @@ export class WalletController {
     }
 
     return this.walletService.getAsset(queryParams.value, queryParams.selectBy, queryParams.entityId, user.companyId);
+  }
+
+  @Patch('/asset/:selectBy/:code')
+  @Permission('entity:UPDATE')
+  updateAsset(@Param('selectBy') selectBy: AssetQueryParamFilter, @Param('code') code: string, @User() user: RequestUserData) {
+    if (!isEnum(selectBy, AssetQueryParamFilter)) {
+      throw new BadRequestException('Please provide a valid select by');
+    }
   }
 }

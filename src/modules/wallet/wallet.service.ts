@@ -1,5 +1,5 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { CreateWalletDto } from './dto/create-wallet.dto';
+import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { CreateWalletAssetDto } from './dto/create-wallet-asset.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Wallet } from './entities/wallet.entity';
 import { Repository } from 'typeorm';
@@ -7,6 +7,8 @@ import { ConfigService } from '@nestjs/config';
 import { isNumber } from 'class-validator';
 import { AssetQueryParamFilter, WalletStructureFilter } from './dto/wallet.enum';
 import { GetWalletStructureResponse } from './dto/wallet.type';
+import { EntityIdentifier } from 'src/shared/interface/entity.type';
+import { UpdateWalletAssetDto } from './dto/update-wallet-asset.dto';
 
 @Injectable()
 export class WalletService {
@@ -16,7 +18,7 @@ export class WalletService {
     private readonly configService: ConfigService,
   ) {}
 
-  public async createWithStreaming(input: CreateWalletDto, entityId: string, companyId: string) {
+  public async createWithStreaming(input: CreateWalletAssetDto, { entityId, companyId }: EntityIdentifier) {
     const BATCH_SIZE = Number(this.configService.getOrThrow('WALLET_BATCH_SIZE'));
     if (!isNumber(BATCH_SIZE)) {
       console.error('Invalid batch size. It needs to be number. Check the config file');
@@ -27,13 +29,13 @@ export class WalletService {
       const batchLimit = Math.min(BATCH_SIZE, input.amount - offset);
       const batchInput = { ...input, amount: batchLimit };
 
-      const walletsToInsert = this.prepareBulkWalletData(batchInput, entityId, companyId);
+      const walletsToInsert = this.prepareBulkWalletData(batchInput, { entityId, companyId });
 
       await this.walletRepository.insert(walletsToInsert);
     }
   }
 
-  private prepareBulkWalletData(input: CreateWalletDto, entityId: string, companyId: string): Partial<Wallet>[] {
+  private prepareBulkWalletData(input: CreateWalletAssetDto, { entityId, companyId }: EntityIdentifier): Partial<Wallet>[] {
     const wallets: any[] = [];
 
     for (let i = 1; i <= input.amount; i++) {
@@ -54,7 +56,7 @@ export class WalletService {
     return wallets;
   }
 
-  async getAsset(value: string, selectBy: AssetQueryParamFilter, entityId: string, companyId: string) {
+  async getAsset(value: string, selectBy: AssetQueryParamFilter, { entityId, companyId }: EntityIdentifier) {
     const [items, count] = await this.walletRepository.findAndCount({
       where: {
         [selectBy]: value,
@@ -116,7 +118,7 @@ export class WalletService {
     };
   }
 
-  async getWalletStructure(groupBy: WalletStructureFilter, entityId: string, companyId: string) {
+  async getWalletStructure(groupBy: WalletStructureFilter, { entityId, companyId }: EntityIdentifier) {
     const walletStructure: GetWalletStructureResponse[] = await this.walletRepository.query(
       `
         SELECT
@@ -148,6 +150,57 @@ export class WalletService {
     return {
       overview: walletStructure?.find((item) => item.groupKey === 'TOTAL'),
       assets: walletStructure?.filter((item) => item.groupKey !== 'TOTAL'),
+    };
+  }
+
+  async updateAsset(
+    selectValue: string,
+    selectBy: AssetQueryParamFilter,
+    input: Omit<UpdateWalletAssetDto, 'entityId'>,
+    { entityId, companyId }: EntityIdentifier,
+  ) {
+    const itemsToUpdate = await this.walletRepository.find({
+      where: {
+        [selectBy]: selectValue,
+        entity: {
+          id: entityId,
+        },
+        company: {
+          id: companyId,
+        },
+      },
+    });
+
+    if (!itemsToUpdate) {
+      return new BadRequestException('No asset to update');
+    }
+
+    return itemsToUpdate;
+  }
+
+  async deleteAsset(selectValue: string, selectBy: AssetQueryParamFilter, amount: number, { entityId, companyId }: EntityIdentifier) {
+    const itemsToDelete = await this.walletRepository.find({
+      where: {
+        [selectBy]: selectValue,
+        entity: {
+          id: entityId,
+        },
+        company: {
+          id: companyId,
+        },
+      },
+      take: amount,
+    });
+    if (!itemsToDelete || !itemsToDelete.length) {
+      throw new BadRequestException('No assets found to delete');
+    }
+    const idsToDelete = itemsToDelete.map((item) => item.id);
+
+    const deleteResult = await this.walletRepository.delete(idsToDelete);
+
+    return {
+      deleted: deleteResult.affected || 0,
+      requested: amount,
     };
   }
 }

@@ -1,7 +1,7 @@
 import { IsEnum, IsNotEmpty, IsNumber, IsPositive, IsString } from 'class-validator';
 import { Currency } from './wallet.enum';
 
-export class CreateWalletDto {
+export class CreateWalletAssetDto {
   @IsNotEmpty()
   @IsString()
   name: string;

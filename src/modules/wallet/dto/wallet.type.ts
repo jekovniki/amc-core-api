@@ -10,5 +10,4 @@ export type GetWalletStructureResponse = {
 export type AssetQueryParams = {
   selectBy: AssetQueryParamFilter;
   value: string;
-  entityId: string;
 };

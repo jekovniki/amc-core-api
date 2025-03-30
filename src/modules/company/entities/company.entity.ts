@@ -1,5 +1,7 @@
 import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, UpdateDateColumn } from 'typeorm';
 import { Entity as CompanyEntity } from 'src/modules/entity/entities/entity.entity';
+import { Wallet } from 'src/modules/wallet/entities/wallet.entity';
+import { WalletAssetType } from 'src/modules/wallet/entities/wallet-asset-type.entity';
 
 @Entity()
 export class Company {
@@ -23,6 +25,12 @@ export class Company {
 
   @OneToMany(() => CompanyEntity, (entity) => entity.company)
   entities: CompanyEntity[];
+
+  @OneToMany(() => Wallet, (wallet) => wallet.company)
+  wallet: Wallet[];
+
+  @OneToMany(() => WalletAssetType, (wallet) => wallet.company)
+  walletAssetType: WalletAssetType[];
 
   @CreateDateColumn({
     name: 'created_at',

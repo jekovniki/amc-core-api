@@ -156,7 +156,7 @@ export class WalletService {
   async updateAsset(
     selectValue: string,
     selectBy: AssetQueryParamFilter,
-    input: Omit<UpdateWalletAssetDto, 'entityId'>,
+    input: UpdateWalletAssetDto,
     { entityId, companyId }: EntityIdentifier,
   ) {
     const itemsToUpdate = await this.walletRepository.find({
@@ -169,13 +169,52 @@ export class WalletService {
           id: companyId,
         },
       },
+      relations: ['assetType'],
     });
 
     if (!itemsToUpdate) {
       return new BadRequestException('No asset to update');
     }
 
-    return itemsToUpdate;
+    if (input.amount && input.amount !== itemsToUpdate.length) {
+      if (input.amount > itemsToUpdate.length) {
+        await this.createWithStreaming({ ...input, amount: input.amount - itemsToUpdate.length }, { entityId, companyId });
+      }
+
+      if (itemsToUpdate.length > input.amount) {
+        await this.deleteAsset(selectValue, selectBy, itemsToUpdate.length - input.amount, { entityId, companyId });
+      }
+    }
+
+    const updateData: any = {};
+    if (input.name !== undefined) updateData.name = input.name;
+    if (input.code !== undefined) updateData.code = input.code;
+    if (input.isin !== undefined) updateData.isin = input.isin;
+    if (input.value !== undefined) updateData.value = input.value;
+    if (input.currency !== undefined) updateData.currency = input.currency;
+    if (input.assetTypeId !== undefined) updateData.assetType = { id: input.assetTypeId };
+
+    if (Object.keys(updateData).length > 0) {
+      const itemIds = itemsToUpdate.map((item) => item.id);
+      await this.walletRepository.update(itemIds, updateData);
+    }
+
+    const updatedItems = await this.walletRepository.find({
+      where: {
+        [selectBy]: selectValue,
+        entity: {
+          id: entityId,
+        },
+        company: {
+          id: companyId,
+        },
+      },
+    });
+
+    return {
+      updated: updatedItems.length,
+      assets: updatedItems,
+    };
   }
 
   async deleteAsset(selectValue: string, selectBy: AssetQueryParamFilter, amount: number, { entityId, companyId }: EntityIdentifier) {

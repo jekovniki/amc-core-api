@@ -20,6 +20,11 @@ export class UpdateWalletAssetDto {
   value: number;
 
   @IsOptional()
+  @IsNumber()
+  @IsPositive()
+  amount: number;
+
+  @IsOptional()
   @IsEnum(Currency, { each: true })
   currency: Currency;
 

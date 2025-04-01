@@ -5,12 +5,13 @@ import { AuthModule } from './modules/auth/auth.module';
 import { CompanyModule } from './modules/company/company.module';
 import { UserModule } from './modules/user/user.module';
 import { IsUnique } from './shared/util/validator/is-unique-validator.util';
-import { APP_GUARD } from '@nestjs/core';
+import { APP_GUARD, APP_INTERCEPTOR } from '@nestjs/core';
 import { AccessGuard } from './shared/guard/access.guard';
 import { PermissionGuard } from './shared/guard/permission.guard';
 import { EntityModule } from './modules/entity/entity.module';
 import { ObligationsModule } from './modules/obligations/obligations.module';
 import { WalletModule } from './modules/wallet/wallet.module';
+import { LoggingInterceptor } from './shared/interceptor/logging.interceptor';
 
 @Module({
   imports: [
@@ -34,6 +35,10 @@ import { WalletModule } from './modules/wallet/wallet.module';
     {
       provide: APP_GUARD,
       useClass: PermissionGuard,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
     },
   ],
 })

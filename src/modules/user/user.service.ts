@@ -1,4 +1,4 @@
-import { BadRequestException, forwardRef, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,6 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { RoleService } from '../auth/role.service';
 import { getExpirationTime } from 'src/shared/util/time.util';
+import { CantDeleteUsersFromOtherCompaniesException, RoleNotFoundException, UserNotFoundException } from './exceptions/user.exception';
 
 @Injectable()
 export class UserService {
@@ -29,7 +30,7 @@ export class UserService {
       createUserDto.users.map(async ({ email, role_id }) => {
         const role = await this.roleService.findById(role_id);
         if (!role) {
-          throw new NotFoundException(`Role with ID ${role_id} not found`);
+          throw new RoleNotFoundException(role_id);
         }
 
         const newUser = this.userRepository.create({ email, role, company: sub });
@@ -91,17 +92,17 @@ export class UserService {
     const user = await this.findOneById(id);
 
     if (!user) {
-      throw new NotFoundException(`User with ID ${id} not found`);
+      throw new UserNotFoundException();
     }
     if (user.company.id !== companyId) {
-      throw new BadRequestException("You can't delete users from different companies");
+      throw new CantDeleteUsersFromOtherCompaniesException();
     }
 
     let role;
     if (updateUserDto.roleId !== undefined) {
       role = await this.roleService.findById(updateUserDto.roleId);
       if (!role) {
-        throw new NotFoundException(`Role with ID ${updateUserDto.roleId} not found`);
+        throw new RoleNotFoundException(updateUserDto.roleId);
       }
     }
 
@@ -126,7 +127,7 @@ export class UserService {
     }
 
     if (user.company.id !== companyId) {
-      throw new BadRequestException("You can't delete users from different companies");
+      throw new CantDeleteUsersFromOtherCompaniesException();
     }
 
     return this.userRepository.delete(id);

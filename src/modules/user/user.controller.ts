@@ -1,18 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Body,
-  Patch,
-  Param,
-  Delete,
-  Res,
-  Req,
-  UnauthorizedException,
-  HttpStatus,
-  HttpCode,
-  BadRequestException,
-} from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, Res, Req, HttpStatus, HttpCode } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto, UpdateUserStatusDto } from './dto/update-user.dto';
@@ -23,6 +9,7 @@ import { Public } from 'src/shared/decorator/public.decorator';
 import { Permission } from 'src/shared/decorator/permission.decorator';
 import { User } from 'src/shared/decorator/user.decorator';
 import { RequestUserData } from 'src/shared/interface/server.interface';
+import { CantDeleteYourselfException, InvalidCompanyTokenException, MissingCompanyTokenException } from './exceptions/user.exception';
 
 @Controller({
   path: 'user',
@@ -39,7 +26,7 @@ export class UserController {
   create(@Body() createUserDto: CreateUserDto, @Req() request: Request, @Res({ passthrough: true }) response: Response) {
     const registrationToken = request.cookies[TOKENS.COMPANY_REGISTRATION];
     if (!registrationToken) {
-      throw new UnauthorizedException('Company registration token is required');
+      throw new MissingCompanyTokenException();
     }
 
     try {
@@ -53,7 +40,7 @@ export class UserController {
       return this.userService.create(createUserDto, registrationToken);
     } catch (error) {
       if (error.name === 'JsonWebTokenError' || error.name === 'TokenExpiredError') {
-        throw new UnauthorizedException('Invalid or expired registration token');
+        throw new InvalidCompanyTokenException();
       }
       throw error;
     }
@@ -100,7 +87,7 @@ export class UserController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@User() user: RequestUserData, @Param('id') id: string) {
     if (user.id === id) {
-      throw new BadRequestException("You can't delete yourself from the system");
+      throw new CantDeleteYourselfException();
     }
     await this.userService.remove(id, user.companyId);
 

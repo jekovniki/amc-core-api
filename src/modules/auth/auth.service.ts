@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { SignInAuthDto } from './dto/sign-in-auth.dto';
 import { SignUpAuthDto } from './dto/sign-up-auth.dto';
 import { ChangePasswordAuthDto } from './dto/change-password-auth.dto';
@@ -10,6 +10,15 @@ import { getExpirationTime } from 'src/shared/util/time.util';
 import { EntityService } from '../entity/entity.service';
 import { SessionDataResponse } from './dto/tokens.type';
 import { User } from '../user/entities/user.entity';
+import {
+  AlreadyRegisteredUserException,
+  InactiveUserException,
+  IncompleteRegistrationException,
+  InvalidCredentialsException,
+  InvalidRefreshTokenException,
+  SamePasswordException,
+  UserNotFoundException,
+} from './exceptions/auth.exceptions';
 
 @Injectable()
 export class AuthService {
@@ -22,17 +31,17 @@ export class AuthService {
   async signIn(input: SignInAuthDto): Promise<SessionDataResponse> {
     const user = await this.userService.findOneByEmail(input.email);
     if (!user) {
-      throw new BadRequestException('Wrong credentials');
+      throw new InvalidCredentialsException();
     }
     if (!user.password) {
-      throw new BadRequestException('Please complete registration before you try to sign in');
+      throw new IncompleteRegistrationException();
     }
     if (!user.active) {
-      throw new BadRequestException('The user is no longer active');
+      throw new InactiveUserException();
     }
     const isValidPassword = await validateHash(input.password, user.password);
     if (!isValidPassword) {
-      throw new BadRequestException('Wrong credentials');
+      throw new InvalidCredentialsException();
     }
 
     return await this.getSessionData(user);
@@ -45,10 +54,10 @@ export class AuthService {
 
     const user = await this.userService.findOneById(sub);
     if (!user) {
-      throw new BadRequestException('User no longer exists');
+      throw new UserNotFoundException();
     }
     if (user.active || (!user.active && user.password)) {
-      throw new BadRequestException('User has already been registered');
+      throw new AlreadyRegisteredUserException();
     }
 
     return this.userService.update(sub, user.company.id, {
@@ -63,7 +72,7 @@ export class AuthService {
   async requestPassword(id: string) {
     const user = await this.userService.findOneById(id);
     if (!user) {
-      throw new BadRequestException('User does not exist');
+      throw new UserNotFoundException();
     }
 
     const resetPasswordToken = this.jwtService.sign(
@@ -92,12 +101,12 @@ export class AuthService {
 
     const user = await this.userService.findOneById(sub);
     if (!user || user.email !== input.email) {
-      throw new BadRequestException('Invalid request');
+      throw new UserNotFoundException();
     }
 
     const isSamePassword = await validateHash(input.password, user?.password || '');
     if (isSamePassword) {
-      throw new BadRequestException('New password should not be the same as the old password');
+      throw new SamePasswordException();
     }
 
     return this.userService.update(sub, user.company.id, {
@@ -109,11 +118,11 @@ export class AuthService {
     const user = await this.userService.findOneById(userId);
 
     if (!user || !user?.refreshToken) {
-      throw new BadRequestException('Wrong credentials');
+      throw new InvalidCredentialsException();
     }
 
     if (user.refreshToken !== refreshToken) {
-      throw new BadRequestException('Invalid request token');
+      throw new InvalidRefreshTokenException();
     }
 
     return await this.getSessionData(user);

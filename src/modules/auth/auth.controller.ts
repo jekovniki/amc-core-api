@@ -110,10 +110,6 @@ export class AuthController {
   @Public()
   @Get('/role')
   async findAll() {
-    try {
-      return this.roleService.findAll();
-    } catch (error) {
-      return null;
-    }
+    return this.roleService.findAll();
   }
 }

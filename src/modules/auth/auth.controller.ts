@@ -71,8 +71,8 @@ export class AuthController {
   @UseGuards(RefreshGuard)
   @Post('/refresh-token')
   @HttpCode(HttpStatus.OK)
-  async refreshToken(@RefreshToken() user: RequestRefreshUserToken, @Res({ passthrough: true }) response: Response): Promise<void> {
-    const { accessToken, refreshToken } = await this.authService.refreshToken(user.id, user.refreshToken);
+  async refreshToken(@RefreshToken() user: RequestRefreshUserToken, @Res({ passthrough: true }) response: Response) {
+    const { accessToken, refreshToken, sessionData } = await this.authService.refreshToken(user.id, user.refreshToken);
 
     response.cookie(TOKENS.REFRESH_TOKEN, refreshToken, {
       httpOnly: true,
@@ -87,6 +87,8 @@ export class AuthController {
       sameSite: 'strict',
       maxAge: getExpirationTime.minutes(60),
     });
+
+    return { sessionData };
   }
 
   @Post('/sign-out')
@@ -110,10 +112,6 @@ export class AuthController {
   @Public()
   @Get('/role')
   async findAll() {
-    try {
-      return this.roleService.findAll();
-    } catch (error) {
-      return null;
-    }
+    return this.roleService.findAll();
   }
 }

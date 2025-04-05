@@ -52,6 +52,12 @@ export class EntityController {
     return this.entitiesService.create(input, user.companyId);
   }
 
+  @Get('/:id')
+  @Permission('entity:READ')
+  async getEntityById(@Param('id') id: string, @User() user: RequestUserData) {
+    return this.entitiesService.findOneById(id, user.companyId);
+  }
+
   @Get('/me')
   @Permission('entity:READ')
   async getComapnyEntities(@User() user: RequestUserData) {

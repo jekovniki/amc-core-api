@@ -11,6 +11,7 @@ interface BaseUserData {
 
 export interface RequestUserData extends BaseUserData {
   permissions: string[];
+  entityIds: string[];
 }
 
 export interface RequestRefreshUserToken extends BaseUserData {

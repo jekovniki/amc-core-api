@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
@@ -7,6 +7,7 @@ import { TOKENS } from 'src/shared/util/token.util';
 import { RefreshTokenPayload } from '../dto/tokens.type';
 import { RequestRefreshUserToken } from 'src/shared/interface/server.interface';
 import { Request } from 'express';
+import { InvalidRefreshTokenException, MissingTokenException } from '../exceptions/auth.exceptions';
 
 @Injectable()
 export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'refresh') {
@@ -38,7 +39,7 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'refresh') 
     const token = cookies[TOKENS.REFRESH_TOKEN];
 
     if (!token) {
-      throw new UnauthorizedException('Refresh token not found');
+      throw new MissingTokenException();
     }
 
     try {
@@ -52,7 +53,7 @@ export class RefreshTokenStrategy extends PassportStrategy(Strategy, 'refresh') 
         refreshToken: token,
       };
     } catch (error) {
-      throw new UnauthorizedException('Invalid refresh token');
+      throw new InvalidRefreshTokenException();
     }
   }
 

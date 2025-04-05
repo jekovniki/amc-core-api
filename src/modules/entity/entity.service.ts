@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { EntityType } from './entities/entity-type.entity';
 import { Repository } from 'typeorm';
@@ -6,6 +6,7 @@ import { Entity } from './entities/entity.entity';
 import { CreateEntityDto } from './dto/create-entity.dto';
 import { EntityStatusType } from './dto/entity.enum';
 import { UpdateEntityDto } from './dto/update-entity.dto';
+import { EntityNotFoundException } from './exceptions/entity.exceptions';
 
 @Injectable()
 export class EntityService {
@@ -52,7 +53,7 @@ export class EntityService {
       },
     });
     if (!existingEntity) {
-      throw new NotFoundException(['Entity does not exist']);
+      throw new EntityNotFoundException();
     }
 
     const updatedEntity = {
@@ -75,5 +76,16 @@ export class EntityService {
     });
 
     return count > 0;
+  }
+
+  async findOneById(id: string, companyId: string): Promise<Entity | null> {
+    return await this.entityRepository.findOne({
+      where: {
+        id,
+        company: {
+          id: companyId,
+        },
+      },
+    });
   }
 }

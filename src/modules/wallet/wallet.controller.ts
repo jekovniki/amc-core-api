@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, BadRequestException, HttpCode, HttpStatus, Query } from '@nestjs/common';
+import { Controller, Get, Post, Body, Patch, Param, Delete, HttpCode, HttpStatus, Query } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { CreateWalletAssetDto } from './dto/create-wallet-asset.dto';
 import { WalletAssetTypeService } from './wallet-asset-type.service';
@@ -7,10 +7,19 @@ import { RequestUserData } from 'src/shared/interface/server.interface';
 import { Permission } from 'src/shared/decorator/permission.decorator';
 import { CreateWalletAssetTypeDto } from './dto/create-wallet-asset-type.dto';
 import { UpdateWalletAssetTypeDto } from './dto/update-wallet-asset-type.dto';
-import { isEnum, isNumberString, isUUID } from 'class-validator';
+import { isEnum, isNumberString } from 'class-validator';
 import { AssetQueryParamFilter, WalletStructureFilter } from './dto/wallet.enum';
 import { AssetQueryParams } from './dto/wallet.type';
 import { UpdateWalletAssetDto } from './dto/update-wallet-asset.dto';
+import { Entities } from 'src/shared/decorator/entity.decorator';
+import { ENTITY_LOCATION } from 'src/shared/interface/entity.enum';
+import {
+  InvalidAmountException,
+  InvalidAssetIdException,
+  InvalidAssetQueryParamsException,
+  InvalidWalletFilterException,
+  MissingQueryParamsException,
+} from './exceptions/wallet.exceptions';
 
 @Controller({
   path: 'wallet',
@@ -38,7 +47,7 @@ export class WalletController {
   @Permission('entity:UPDATE')
   async setAssetType(@Param('assetId') assetId: string, @Body() input: UpdateWalletAssetTypeDto, @User() user: RequestUserData) {
     if (!isNumberString(assetId)) {
-      throw new BadRequestException('Provide a valid id');
+      throw new InvalidAssetIdException();
     }
 
     return this.walletAssetTypeService.update(+assetId, input, user.companyId);
@@ -49,7 +58,7 @@ export class WalletController {
   @HttpCode(HttpStatus.NO_CONTENT)
   async removeAssetType(@Param('assetId') assetId: string, @User() user: RequestUserData) {
     if (!isNumberString(assetId)) {
-      throw new BadRequestException('Provide a valid id');
+      throw new InvalidAssetIdException();
     }
 
     return this.walletAssetTypeService.remove(+assetId, user.companyId);
@@ -57,21 +66,17 @@ export class WalletController {
 
   @Post('/:entityId/asset')
   @Permission('entity:CREATE')
+  @Entities(ENTITY_LOCATION.PARAM)
   create(@Param('entityId') entityId: string, @Body() createWalletDto: CreateWalletAssetDto, @User() { companyId }: RequestUserData) {
-    if (!entityId || !isUUID(entityId)) {
-      throw new BadRequestException('Please enter valid entity id');
-    }
     return this.walletService.createWithStreaming(createWalletDto, { entityId, companyId });
   }
 
   @Get('/:entityId/structure/:filter')
   @Permission('entity:READ')
+  @Entities(ENTITY_LOCATION.PARAM)
   getStructure(@Param('entityId') entityId: string, @Param('filter') filter: string, @User() { companyId }: RequestUserData) {
-    if (!entityId || !isUUID(entityId)) {
-      throw new BadRequestException('Please enter valid entity id');
-    }
     if (!filter || !isEnum(filter, WalletStructureFilter)) {
-      throw new BadRequestException('Please enter valid filter');
+      throw new InvalidWalletFilterException();
     }
     return this.walletService.getWalletStructure(filter as WalletStructureFilter, {
       entityId,
@@ -81,17 +86,14 @@ export class WalletController {
 
   @Get('/:entityId/asset')
   @Permission('entity:READ')
+  @Entities(ENTITY_LOCATION.PARAM)
   getAsset(@Param('entityId') entityId: string, @Query() queryParams: AssetQueryParams, @User() { companyId }: RequestUserData) {
     if (!queryParams) {
-      throw new BadRequestException('Please provide query params');
-    }
-
-    if (!entityId || !isUUID(entityId)) {
-      throw new BadRequestException('Please enter valid entity id');
+      throw new MissingQueryParamsException();
     }
 
     if (!queryParams.selectBy || !isEnum(queryParams.selectBy, AssetQueryParamFilter)) {
-      throw new BadRequestException('Invalid selectBy query params');
+      throw new InvalidAssetQueryParamsException();
     }
 
     return this.walletService.getAsset(queryParams.value, queryParams.selectBy, {
@@ -102,6 +104,7 @@ export class WalletController {
 
   @Patch('/:entityId/asset/:selectBy/:selectValue')
   @Permission('entity:UPDATE')
+  @Entities(ENTITY_LOCATION.PARAM)
   updateAsset(
     @Param('entityId') entityId: string,
     @Param('selectBy') selectBy: AssetQueryParamFilter,
@@ -109,11 +112,8 @@ export class WalletController {
     @Body() input: UpdateWalletAssetDto,
     @User() { companyId }: RequestUserData,
   ) {
-    if (!entityId || !isUUID(entityId)) {
-      throw new BadRequestException('Please enter valid entity id');
-    }
     if (!isEnum(selectBy, AssetQueryParamFilter)) {
-      throw new BadRequestException('Please provide a valid select by');
+      throw new InvalidAssetQueryParamsException();
     }
 
     return this.walletService.updateAsset(selectValue, selectBy, input, { entityId, companyId });
@@ -121,6 +121,7 @@ export class WalletController {
 
   @Delete('/:entityId/asset/:selectBy/:selectValue/:amount')
   @Permission('entity:UPDATE')
+  @Entities(ENTITY_LOCATION.PARAM)
   deleteAsset(
     @Param('entityId') entityId: string,
     @Param('selectBy') selectBy: AssetQueryParamFilter,
@@ -128,14 +129,11 @@ export class WalletController {
     @Param('amount') amount: string,
     @User() { companyId }: RequestUserData,
   ) {
-    if (!entityId || !isUUID(entityId)) {
-      throw new BadRequestException('Please enter valid entity id');
-    }
     if (!isEnum(selectBy, AssetQueryParamFilter)) {
-      throw new BadRequestException('Please provide a valid select by');
+      throw new InvalidAssetQueryParamsException();
     }
     if (!isNumberString(amount)) {
-      throw new BadRequestException('Please provide a valid amount');
+      throw new InvalidAmountException();
     }
 
     return this.walletService.deleteAsset(selectValue, selectBy, Number(amount), { entityId, companyId });

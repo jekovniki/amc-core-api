@@ -1,4 +1,4 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Strategy } from 'passport-jwt';
 import { PassportStrategy } from '@nestjs/passport';
 import { ConfigService } from '@nestjs/config';
@@ -7,6 +7,7 @@ import { TOKENS } from 'src/shared/util/token.util';
 import { AccessTokenPayload } from '../dto/tokens.type';
 import { RequestUserData } from 'src/shared/interface/server.interface';
 import { Request } from 'express';
+import { InvalidTokenException, MissingTokenException } from '../exceptions/auth.exceptions';
 
 @Injectable()
 export class AccessTokenStrategy extends PassportStrategy(Strategy, 'access') {
@@ -38,7 +39,7 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'access') {
     const token = cookies[TOKENS.ACCESS_TOKEN];
 
     if (!token) {
-      throw new UnauthorizedException('Access token not found');
+      throw new MissingTokenException();
     }
 
     try {
@@ -49,10 +50,11 @@ export class AccessTokenStrategy extends PassportStrategy(Strategy, 'access') {
       return {
         id: payload.sub,
         companyId: payload.cid,
+        entityIds: payload.eid,
         permissions: payload.scope,
       };
     } catch (error) {
-      throw new UnauthorizedException('Invalid access token');
+      throw new InvalidTokenException();
     }
   }
 

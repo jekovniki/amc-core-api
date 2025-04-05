@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateCompanyDto } from './dto/create-company.dto';
 import { UpdateCompanyDto } from './dto/update-company.dto';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -7,6 +7,7 @@ import { Repository } from 'typeorm';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { getExpirationTime } from 'src/shared/util/time.util';
+import { CompanyNotFoundException } from './exceptions/company.exceptions';
 
 @Injectable()
 export class CompanyService {
@@ -45,7 +46,7 @@ export class CompanyService {
     const existingCompany = await this.companyRepository.findOneBy({ id });
 
     if (!existingCompany) {
-      throw new NotFoundException(`Company with ID "${id}" not found`);
+      throw new CompanyNotFoundException(id);
     }
 
     const updatedCompany = {
@@ -54,6 +55,8 @@ export class CompanyService {
       updatedAt: new Date(),
     };
 
-    return this.companyRepository.save(updatedCompany);
+    await this.companyRepository.update(id, updatedCompany);
+
+    return this.companyRepository.findOneBy({ id });
   }
 }

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable, InternalServerErrorException } from '@nestjs/common';
 import { CreateWalletAssetDto } from './dto/create-wallet-asset.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Wallet } from './entities/wallet.entity';
@@ -9,6 +9,7 @@ import { AssetQueryParamFilter, WalletStructureFilter } from './dto/wallet.enum'
 import { GetWalletStructureResponse } from './dto/wallet.type';
 import { EntityIdentifier } from 'src/shared/interface/entity.type';
 import { UpdateWalletAssetDto } from './dto/update-wallet-asset.dto';
+import { AssetNotFoundException } from './exceptions/wallet.exceptions';
 
 @Injectable()
 export class WalletService {
@@ -173,7 +174,7 @@ export class WalletService {
     });
 
     if (!itemsToUpdate) {
-      return new BadRequestException('No asset to update');
+      return new AssetNotFoundException();
     }
 
     if (input.amount && input.amount !== itemsToUpdate.length) {
@@ -231,7 +232,7 @@ export class WalletService {
       take: amount,
     });
     if (!itemsToDelete || !itemsToDelete.length) {
-      throw new BadRequestException('No assets found to delete');
+      throw new AssetNotFoundException();
     }
     const idsToDelete = itemsToDelete.map((item) => item.id);
 

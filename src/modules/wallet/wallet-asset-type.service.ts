@@ -1,9 +1,11 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { WalletAssetType } from './entities/wallet-asset-type.entity';
 import { IsNull, Repository } from 'typeorm';
 import { CreateWalletAssetTypeDto } from './dto/create-wallet-asset-type.dto';
 import { UpdateWalletAssetTypeDto } from './dto/update-wallet-asset-type.dto';
+import { WalletNotFoundException } from './exceptions/wallet.exceptions';
+import { AssetTypeEditForbiddenException, AssetTypeNotExistException } from './exceptions/wallet-asset-type.exceptions';
 
 @Injectable()
 export class WalletAssetTypeService {
@@ -44,12 +46,12 @@ export class WalletAssetTypeService {
       relations: ['company'],
     });
     if (!item) {
-      throw new NotFoundException(['Wallet id does not exist']);
+      throw new WalletNotFoundException();
     }
     const isNativeAssetType = item.company === null;
     const isCompanyAssetType = item?.company?.id === companyId;
     if (isNativeAssetType || isCompanyAssetType === false) {
-      throw new BadRequestException(`You can't edit this asset`);
+      throw new AssetTypeEditForbiddenException();
     }
 
     return await this.walletAssetTypeRepository.update(id, {
@@ -70,7 +72,7 @@ export class WalletAssetTypeService {
       },
     });
     if (!item) {
-      throw new BadRequestException(`You can't delete this asset`);
+      throw new AssetTypeNotExistException();
     }
 
     await this.walletAssetTypeRepository.delete({ id });

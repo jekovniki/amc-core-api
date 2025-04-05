@@ -6,8 +6,6 @@ import { CreateEntityDto } from './dto/create-entity.dto';
 import { User } from 'src/shared/decorator/user.decorator';
 import { RequestUserData } from 'src/shared/interface/server.interface';
 import { UpdateEntityDto } from './dto/update-entity.dto';
-import { Entities } from 'src/shared/decorator/entity.decorator';
-import { ENTITY_LOCATION } from 'src/shared/interface/entity.enum';
 
 @Controller({
   path: 'entity',
@@ -56,8 +54,7 @@ export class EntityController {
 
   @Get('/:id')
   @Permission('entity:READ')
-  @Entities(ENTITY_LOCATION.PARAM)
-  async getEntityById(@Param('entityId') id: string, @User() user: RequestUserData) {
+  async getEntityById(@Param('id') id: string, @User() user: RequestUserData) {
     return this.entitiesService.findOneById(id, user.companyId);
   }
 

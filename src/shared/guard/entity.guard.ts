@@ -14,13 +14,15 @@ export class EntityGuard implements CanActivate {
       context.getHandler(),
       context.getClass(),
     ]);
+    if (!entityLocation) return true;
+
     const request = context.switchToHttp().getRequest();
     const { user }: { user: RequestUserData } = request;
 
     if (entityLocation === ENTITY_LOCATION.PARAM) {
       const { params } = request;
 
-      return user.entityIds.includes(params['id']);
+      return user.entityIds.includes(params['entityId']);
     }
 
     if (entityLocation === ENTITY_LOCATION.BODY) {

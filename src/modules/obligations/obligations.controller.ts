@@ -1,17 +1,4 @@
-import {
-  Controller,
-  Post,
-  Body,
-  Param,
-  BadRequestException,
-  Get,
-  Query,
-  Patch,
-  Delete,
-  HttpStatus,
-  HttpCode,
-  ForbiddenException,
-} from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, Query, Patch, Delete, HttpStatus, HttpCode, ForbiddenException } from '@nestjs/common';
 import { ObligationsService } from './obligations.service';
 import { CreateObligationDto } from './dto/create-obligation.dto';
 import { RequestUserData } from 'src/shared/interface/server.interface';
@@ -19,6 +6,8 @@ import { User } from 'src/shared/decorator/user.decorator';
 import { Permission } from 'src/shared/decorator/permission.decorator';
 import { EntityService } from '../entity/entity.service';
 import { UpdateObligationDto } from './dto/update-obligation.dto';
+import { Entities } from 'src/shared/decorator/entity.decorator';
+import { ENTITY_LOCATION } from 'src/shared/interface/entity.enum';
 
 interface GetObligationQueryParams {
   id?: string;
@@ -38,13 +27,8 @@ export class ObligationsController {
 
   @Post('/:entityId')
   @Permission('obligation:CREATE')
+  @Entities(ENTITY_LOCATION.PARAM)
   async create(@Param('entityId') entityId: string, @Body() createObligationDto: CreateObligationDto, @User() user: RequestUserData) {
-    const allEntities = await this.entityService.findAllCompanyEntities(user.companyId);
-
-    const isCompanyEntity = allEntities.some((entity) => entity.id === entityId);
-    if (!isCompanyEntity) {
-      throw new BadRequestException('Please enter valid company entity');
-    }
     return this.obligationsService.create(createObligationDto, entityId, user);
   }
 

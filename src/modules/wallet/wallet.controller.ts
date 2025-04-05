@@ -7,10 +7,12 @@ import { RequestUserData } from 'src/shared/interface/server.interface';
 import { Permission } from 'src/shared/decorator/permission.decorator';
 import { CreateWalletAssetTypeDto } from './dto/create-wallet-asset-type.dto';
 import { UpdateWalletAssetTypeDto } from './dto/update-wallet-asset-type.dto';
-import { isEnum, isNumberString, isUUID } from 'class-validator';
+import { isEnum, isNumberString } from 'class-validator';
 import { AssetQueryParamFilter, WalletStructureFilter } from './dto/wallet.enum';
 import { AssetQueryParams } from './dto/wallet.type';
 import { UpdateWalletAssetDto } from './dto/update-wallet-asset.dto';
+import { Entities } from 'src/shared/decorator/entity.decorator';
+import { ENTITY_LOCATION } from 'src/shared/interface/entity.enum';
 
 @Controller({
   path: 'wallet',
@@ -57,19 +59,15 @@ export class WalletController {
 
   @Post('/:entityId/asset')
   @Permission('entity:CREATE')
+  @Entities(ENTITY_LOCATION.PARAM)
   create(@Param('entityId') entityId: string, @Body() createWalletDto: CreateWalletAssetDto, @User() { companyId }: RequestUserData) {
-    if (!entityId || !isUUID(entityId)) {
-      throw new BadRequestException('Please enter valid entity id');
-    }
     return this.walletService.createWithStreaming(createWalletDto, { entityId, companyId });
   }
 
   @Get('/:entityId/structure/:filter')
   @Permission('entity:READ')
+  @Entities(ENTITY_LOCATION.PARAM)
   getStructure(@Param('entityId') entityId: string, @Param('filter') filter: string, @User() { companyId }: RequestUserData) {
-    if (!entityId || !isUUID(entityId)) {
-      throw new BadRequestException('Please enter valid entity id');
-    }
     if (!filter || !isEnum(filter, WalletStructureFilter)) {
       throw new BadRequestException('Please enter valid filter');
     }
@@ -81,13 +79,10 @@ export class WalletController {
 
   @Get('/:entityId/asset')
   @Permission('entity:READ')
+  @Entities(ENTITY_LOCATION.PARAM)
   getAsset(@Param('entityId') entityId: string, @Query() queryParams: AssetQueryParams, @User() { companyId }: RequestUserData) {
     if (!queryParams) {
       throw new BadRequestException('Please provide query params');
-    }
-
-    if (!entityId || !isUUID(entityId)) {
-      throw new BadRequestException('Please enter valid entity id');
     }
 
     if (!queryParams.selectBy || !isEnum(queryParams.selectBy, AssetQueryParamFilter)) {
@@ -102,6 +97,7 @@ export class WalletController {
 
   @Patch('/:entityId/asset/:selectBy/:selectValue')
   @Permission('entity:UPDATE')
+  @Entities(ENTITY_LOCATION.PARAM)
   updateAsset(
     @Param('entityId') entityId: string,
     @Param('selectBy') selectBy: AssetQueryParamFilter,
@@ -109,9 +105,6 @@ export class WalletController {
     @Body() input: UpdateWalletAssetDto,
     @User() { companyId }: RequestUserData,
   ) {
-    if (!entityId || !isUUID(entityId)) {
-      throw new BadRequestException('Please enter valid entity id');
-    }
     if (!isEnum(selectBy, AssetQueryParamFilter)) {
       throw new BadRequestException('Please provide a valid select by');
     }
@@ -121,6 +114,7 @@ export class WalletController {
 
   @Delete('/:entityId/asset/:selectBy/:selectValue/:amount')
   @Permission('entity:UPDATE')
+  @Entities(ENTITY_LOCATION.PARAM)
   deleteAsset(
     @Param('entityId') entityId: string,
     @Param('selectBy') selectBy: AssetQueryParamFilter,
@@ -128,9 +122,6 @@ export class WalletController {
     @Param('amount') amount: string,
     @User() { companyId }: RequestUserData,
   ) {
-    if (!entityId || !isUUID(entityId)) {
-      throw new BadRequestException('Please enter valid entity id');
-    }
     if (!isEnum(selectBy, AssetQueryParamFilter)) {
       throw new BadRequestException('Please provide a valid select by');
     }

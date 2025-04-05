@@ -1,0 +1,5 @@
+export enum ENTITY_LOCATION {
+  PARAM = 'PARAM',
+  BODY = 'BODY',
+  QUERY_STRING = 'QUERY_STRING',
+}

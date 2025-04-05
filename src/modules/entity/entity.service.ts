@@ -76,4 +76,15 @@ export class EntityService {
 
     return count > 0;
   }
+
+  async findOneById(id: string, companyId: string): Promise<Entity | null> {
+    return await this.entityRepository.findOne({
+      where: {
+        id,
+        company: {
+          id: companyId,
+        },
+      },
+    });
+  }
 }

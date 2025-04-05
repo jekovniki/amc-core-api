@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Param, Get, Query, Patch, Delete, HttpStatus, HttpCode, ForbiddenException } from '@nestjs/common';
+import { Controller, Post, Body, Param, Get, Query, Patch, Delete, HttpStatus, HttpCode } from '@nestjs/common';
 import { ObligationsService } from './obligations.service';
 import { CreateObligationDto } from './dto/create-obligation.dto';
 import { RequestUserData } from 'src/shared/interface/server.interface';
@@ -8,6 +8,7 @@ import { EntityService } from '../entity/entity.service';
 import { UpdateObligationDto } from './dto/update-obligation.dto';
 import { Entities } from 'src/shared/decorator/entity.decorator';
 import { ENTITY_LOCATION } from 'src/shared/interface/entity.enum';
+import { NoEntityAccessException } from './exceptions/obligations.exceptions';
 
 interface GetObligationQueryParams {
   id?: string;
@@ -55,7 +56,7 @@ export class ObligationsController {
       const companyEntities = await this.entityService.findAllCompanyEntities(user.companyId);
       const isCompanyEntity = companyEntities.some((entity) => entity.id === updateObligationDto.newEntityId);
       if (!isCompanyEntity) {
-        throw new ForbiddenException(`You don't have access to this entity`);
+        throw new NoEntityAccessException();
       }
     }
     return this.obligationsService.update(id, updateObligationDto, user.companyId);

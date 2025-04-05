@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateObligationDto } from './dto/create-obligation.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Obligation } from './entities/obligation.entity';
@@ -6,6 +6,7 @@ import { Repository } from 'typeorm';
 import { ObligationStatus } from './dto/obligation.enum';
 import { RequestUserData } from 'src/shared/interface/server.interface';
 import { UpdateObligationDto } from './dto/update-obligation.dto';
+import { EntityDoesNotExistException, InvalidObligationStatusTypeException } from './exceptions/obligations.exceptions';
 
 @Injectable()
 export class ObligationsService {
@@ -34,7 +35,7 @@ export class ObligationsService {
   findOne(query: string, type: 'id' | 'companyId' | 'entityId' | 'status' = 'companyId') {
     if (type === 'status') {
       if (query !== ObligationStatus.DELETED && query !== ObligationStatus.PENDING && query !== ObligationStatus.RESOLVED) {
-        throw new BadRequestException('Invalid status type');
+        throw new InvalidObligationStatusTypeException();
       }
       return this.obligationRepository.findBy({ status: query });
     }
@@ -63,7 +64,7 @@ export class ObligationsService {
       },
     });
     if (!existingObligation) {
-      throw new NotFoundException(['Entity does not exist']);
+      throw new EntityDoesNotExistException();
     }
     let updatedEntity = {};
     if (input.newEntityId) {

@@ -2,6 +2,7 @@ import { Column, CreateDateColumn, Entity, OneToMany, PrimaryGeneratedColumn, Up
 import { Entity as CompanyEntity } from 'src/modules/entity/entities/entity.entity';
 import { Wallet } from 'src/modules/wallet/entities/wallet.entity';
 import { WalletAssetType } from 'src/modules/wallet/entities/wallet-asset-type.entity';
+import { WalletRules } from 'src/modules/wallet/entities/wallet-rules.entity';
 
 @Entity()
 export class Company {
@@ -31,6 +32,9 @@ export class Company {
 
   @OneToMany(() => WalletAssetType, (wallet) => wallet.company)
   walletAssetType: WalletAssetType[];
+
+  @OneToMany(() => WalletRules, (rules) => rules.company)
+  walletRules: WalletRules[];
 
   @CreateDateColumn({
     name: 'created_at',

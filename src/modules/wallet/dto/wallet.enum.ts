@@ -15,3 +15,8 @@ export enum AssetQueryParamFilter {
   Code = 'code',
   ISIN = 'isin',
 }
+
+export enum WalletRulesType {
+  PerAsset = 'per_asset',
+  PerGroup = 'per_group',
+}

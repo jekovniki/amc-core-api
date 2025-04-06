@@ -20,6 +20,10 @@ import {
   InvalidWalletFilterException,
   MissingQueryParamsException,
 } from './exceptions/wallet.exceptions';
+import { WalletRulesService } from './wallet-rules.service';
+import { InvalidRuleIdException } from './exceptions/wallet-rules.exceptions';
+import { CreateWalletRuleDto } from './dto/create-wallet-rule.dto';
+import { UpdateWalletRuleDto } from './dto/update-wallet-rule.dto';
 
 @Controller({
   path: 'wallet',
@@ -29,7 +33,12 @@ export class WalletController {
   constructor(
     private readonly walletService: WalletService,
     private readonly walletAssetTypeService: WalletAssetTypeService,
+    private readonly walletRulesService: WalletRulesService,
   ) {}
+
+  /**
+   * Asset type section
+   */
 
   @Get('/asset-type')
   @Permission('entity:READ')
@@ -63,6 +72,10 @@ export class WalletController {
 
     return this.walletAssetTypeService.remove(+assetId, user.companyId);
   }
+
+  /**
+   * Assets section
+   */
 
   @Post('/:entityId/asset')
   @Permission('entity:CREATE')
@@ -137,5 +150,61 @@ export class WalletController {
     }
 
     return this.walletService.deleteAsset(selectValue, selectBy, Number(amount), { entityId, companyId });
+  }
+
+  /**
+   * Rules section
+   */
+
+  @Get('/:entityId/rules/:ruleId')
+  @Permission('entity:READ')
+  @Entities(ENTITY_LOCATION.PARAM)
+  getRules(@Param('entityId') entityId: string, @Param('ruleId') ruleId: string, @User() { companyId }: RequestUserData) {
+    const identifier = { entityId, companyId };
+    if (ruleId === 'me') {
+      return this.walletRulesService.findAllRules(identifier);
+    }
+    if (isNumberString(ruleId)) {
+      return this.walletRulesService.findRule(Number(ruleId), identifier);
+    }
+    // Not a fan of having exception at the end
+    throw new InvalidRuleIdException();
+  }
+
+  @Post('/:entityId/rules/')
+  @Permission('entity:CREATE')
+  @Entities(ENTITY_LOCATION.PARAM)
+  @HttpCode(HttpStatus.CREATED)
+  addRule(@Param('entityId') entityId: string, @Body() input: CreateWalletRuleDto, @User() { companyId }: RequestUserData) {
+    return this.walletRulesService.addRule(input, { entityId, companyId });
+  }
+
+  @Patch('/:entityId/rules/:ruleId')
+  @Permission('entity:UPDATE')
+  @Entities(ENTITY_LOCATION.PARAM)
+  async updateRule(
+    @Param('entityId') entityId: string,
+    @Param('ruleId') ruleId: string,
+    @Body() input: UpdateWalletRuleDto,
+    @User() { companyId }: RequestUserData,
+  ) {
+    if (!isNumberString(ruleId)) {
+      throw new InvalidRuleIdException();
+    }
+
+    await this.walletRulesService.updateRule(Number(ruleId), input, { entityId, companyId });
+    return;
+  }
+
+  @Delete('/:entityId/rules/:ruleId')
+  @Permission('entity:DELETE')
+  @Entities(ENTITY_LOCATION.PARAM)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteRule(@Param('entityId') entityId: string, @Param('ruleId') ruleId: string, @User() { companyId }: RequestUserData) {
+    if (!isNumberString(ruleId)) {
+      throw new InvalidRuleIdException();
+    }
+    await this.walletRulesService.deleteRule(Number(ruleId), { entityId, companyId });
+    return;
   }
 }

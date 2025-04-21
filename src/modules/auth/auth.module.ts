@@ -10,11 +10,12 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { Permission } from './entities/permission.entity';
 import { Role } from './entities/role.entity';
 import { EntityModule } from '../entity/entity.module';
+import { MailService } from 'src/shared/mail/mail.service';
 
 @Module({
   imports: [JwtModule.register({}), UserModule, TypeOrmModule.forFeature([Permission, Role]), EntityModule],
   controllers: [AuthController],
-  providers: [AuthService, AccessTokenStrategy, RefreshTokenStrategy, RoleService],
+  providers: [AuthService, AccessTokenStrategy, RefreshTokenStrategy, RoleService, MailService],
   exports: [RoleService],
 })
 export class AuthModule {}

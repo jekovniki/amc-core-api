@@ -9,6 +9,7 @@ import { ConfigService } from '@nestjs/config';
 import { RoleService } from '../auth/role.service';
 import { getExpirationTime } from 'src/shared/util/time.util';
 import { CantDeleteUsersFromOtherCompaniesException, RoleNotFoundException, UserNotFoundException } from './exceptions/user.exception';
+import { MailService } from 'src/shared/mail/mail.service';
 
 @Injectable()
 export class UserService {
@@ -19,6 +20,7 @@ export class UserService {
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => RoleService))
     private readonly roleService: RoleService,
+    private readonly mailService: MailService,
   ) {}
 
   async create(createUserDto: CreateUserDto, registrationToken: string): Promise<void> {
@@ -47,6 +49,12 @@ export class UserService {
           },
         );
 
+        await this.mailService.sendMail(
+          user.email,
+          'AMC System | Registration',
+          `You have successfully regitered to AMC System. Here is your token: ${registerToken}`,
+          `<p>You have successfully regitered to AMC System. Here is your token: ${registerToken}</p>`,
+        );
         // Send email here
         console.log(`The following token was send to email: ${user.email} . Token: ${registerToken}`);
       }),

@@ -9,6 +9,8 @@ import { ConfigService } from '@nestjs/config';
 import { RoleService } from '../auth/role.service';
 import { getExpirationTime } from 'src/shared/util/time.util';
 import { CantDeleteUsersFromOtherCompaniesException, RoleNotFoundException, UserNotFoundException } from './exceptions/user.exception';
+import { MailService } from 'src/shared/mail/mail.service';
+import { logger } from 'src/shared/util/logger.util';
 
 @Injectable()
 export class UserService {
@@ -19,10 +21,11 @@ export class UserService {
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => RoleService))
     private readonly roleService: RoleService,
+    private readonly mailService: MailService,
   ) {}
 
   async create(createUserDto: CreateUserDto, registrationToken: string): Promise<void> {
-    const { sub } = this.jwtService.verify(registrationToken, {
+    const { sub, cName } = this.jwtService.verify(registrationToken, {
       secret: this.configService.getOrThrow('COMPANY_REGISTER_TOKEN_SECRET'),
     });
 
@@ -47,8 +50,13 @@ export class UserService {
           },
         );
 
+        await this.mailService.sendTemplateEmail(user.email, 'register-bg', `AMC Manager - Регистрация`, {
+          email: user.email,
+          registerLink: `${this.configService.getOrThrow('APP_URL')}/register?email=${user.email}&companyName=${cName}&registerToken=${registerToken}`,
+          companyName: cName,
+        });
         // Send email here
-        console.log(`The following token was send to email: ${user.email} . Token: ${registerToken}`);
+        logger.info(`The following token was send to email: ${user.email} . Token: ${registerToken}`);
       }),
     );
 

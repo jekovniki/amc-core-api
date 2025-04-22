@@ -25,6 +25,7 @@ export class CompanyService {
       {
         iss: this.configService.getOrThrow('APP_URL'),
         sub: company.id,
+        cName: company.name,
       },
       {
         expiresIn: getExpirationTime.days(7),

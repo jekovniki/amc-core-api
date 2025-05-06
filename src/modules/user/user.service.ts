@@ -52,7 +52,7 @@ export class UserService {
 
         await this.mailService.sendTemplateEmail(user.email, 'register-bg', `AMC Manager - Регистрация`, {
           email: user.email,
-          registerLink: `${this.configService.getOrThrow('APP_URL')}/register?email=${user.email}&companyName=${cName}&registerToken=${registerToken}`,
+          registerLink: `${this.configService.getOrThrow('USER_REGISTER_PAGE')}?email=${user.email}&companyName=${cName}&registerToken=${registerToken}`,
           companyName: cName,
         });
         // Send email here

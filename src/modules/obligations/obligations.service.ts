@@ -32,28 +32,53 @@ export class ObligationsService {
     return this.obligationRepository.save(newObligation);
   }
 
-  findOne(query: string, type: 'id' | 'companyId' | 'entityId' | 'status' = 'companyId') {
+  findOne(query: string, type: 'id' | 'companyId' | 'entityId' | 'status' = 'companyId', companyId: string) {
     if (type === 'status') {
       if (query !== ObligationStatus.DELETED && query !== ObligationStatus.PENDING && query !== ObligationStatus.RESOLVED) {
         throw new InvalidObligationStatusTypeException();
       }
-      return this.obligationRepository.findBy({ status: query });
+      return this.obligationRepository.find({
+        where: {
+          status: query,
+          company: {
+            id: companyId,
+          },
+        },
+        relations: ['entity'],
+      });
     }
     if (type === 'companyId') {
-      return this.obligationRepository.findBy({
-        company: {
-          id: query,
+      return this.obligationRepository.find({
+        where: {
+          company: {
+            id: query,
+          },
         },
+        relations: ['entity'],
       });
     }
     if (type === 'entityId') {
-      return this.obligationRepository.findBy({
-        entity: {
-          id: query,
+      return this.obligationRepository.find({
+        where: {
+          entity: {
+            id: query,
+          },
+          company: {
+            id: companyId,
+          },
         },
+        relations: ['entity'],
       });
     }
-    return this.obligationRepository.findBy({ id: query });
+    return this.obligationRepository.find({
+      where: {
+        id: query,
+        company: {
+          id: companyId,
+        },
+      },
+      relations: ['entity'],
+    });
   }
 
   async update(id: string, input: UpdateObligationDto, companyId: string) {

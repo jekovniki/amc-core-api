@@ -38,15 +38,15 @@ export class ObligationsController {
   @Permission('obligation:READ')
   findOne(@User() user: RequestUserData, @Query() queryParams: GetObligationQueryParams) {
     if (queryParams?.id) {
-      return this.obligationsService.findOne(queryParams?.id, 'id');
+      return this.obligationsService.findOne(queryParams?.id, 'id', user.companyId);
     }
     if (queryParams?.status) {
-      return this.obligationsService.findOne(queryParams?.status, 'status');
+      return this.obligationsService.findOne(queryParams?.status, 'status', user.companyId);
     }
     if (queryParams?.entityId) {
-      return this.obligationsService?.findOne(queryParams?.entityId, 'entityId');
+      return this.obligationsService?.findOne(queryParams?.entityId, 'entityId', user.companyId);
     }
-    return this.obligationsService.findOne(user.companyId, 'companyId');
+    return this.obligationsService.findOne(user.companyId, 'companyId', user.companyId);
   }
 
   @Patch(':id')

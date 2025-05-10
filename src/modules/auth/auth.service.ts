@@ -64,7 +64,7 @@ export class AuthService {
       password: await hashData(input.password, this.configService),
       firstName: input.firstName,
       lastName: input.lastName,
-      job: input.lastName,
+      job: input.job,
       active: true,
     });
   }
@@ -184,6 +184,7 @@ export class AuthService {
           entities: entities,
           role: user.role.name,
         }),
+        'utf-8',
       ).toString('base64'),
       accessToken: accessToken,
       refreshToken,

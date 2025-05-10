@@ -23,10 +23,13 @@ export class EntityService {
   }
 
   findAllCompanyEntities(companyId: string) {
-    return this.entityRepository.findBy({
-      company: {
-        id: companyId,
+    return this.entityRepository.find({
+      where: {
+        company: {
+          id: companyId,
+        },
       },
+      relations: ['entityType'],
     });
   }
 

@@ -170,9 +170,8 @@ export class AuthService {
     );
 
     await this.userService.update(user.id, user.company.id, { refreshToken });
-
     return {
-      sessionData: btoa(
+      sessionData: Buffer.from(
         JSON.stringify({
           email: user.email,
           firstName: user.firstName,
@@ -185,7 +184,7 @@ export class AuthService {
           entities: entities,
           role: user.role.name,
         }),
-      ),
+      ).toString('base64'),
       accessToken: accessToken,
       refreshToken,
     };

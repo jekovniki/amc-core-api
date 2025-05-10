@@ -55,13 +55,11 @@ export class EntityController {
   @Get('/:id')
   @Permission('entity:READ')
   async getEntityById(@Param('id') id: string, @User() user: RequestUserData) {
-    return this.entitiesService.findOneById(id, user.companyId);
-  }
+    if (id === 'me') {
+      return this.entitiesService.findAllCompanyEntities(user.companyId);
+    }
 
-  @Get('/me')
-  @Permission('entity:READ')
-  async getComapnyEntities(@User() user: RequestUserData) {
-    return this.entitiesService.findAllCompanyEntities(user.companyId);
+    return this.entitiesService.findOneById(id, user.companyId);
   }
 
   @Patch('/:id')

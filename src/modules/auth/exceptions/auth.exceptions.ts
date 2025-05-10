@@ -2,7 +2,7 @@ import { HttpException, HttpStatus } from '@nestjs/common';
 
 export class InvalidCredentialsException extends HttpException {
   constructor(message = 'Invalid email or password') {
-    super(message, HttpStatus.UNAUTHORIZED);
+    super(message, HttpStatus.BAD_REQUEST);
   }
 }
 

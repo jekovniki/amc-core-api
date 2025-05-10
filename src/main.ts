@@ -17,7 +17,10 @@ async function bootstrap() {
   app.useGlobalPipes(new ValidationPipe());
   useContainer(app.select(AppModule), { fallbackOnErrors: true });
   app.enableCors({
-    origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',').map((origin) => origin.trim()) : ['http://localhost:5173'],
+    origin:
+      process.env.NODE_ENV === 'production'
+        ? ['https://amc-ui-production.up.railway.app', 'https://amc-ui-production.up.railway.app/']
+        : true,
     credentials: true,
   }); // remove later
   await app.listen(3000);

@@ -64,12 +64,28 @@ export class UserService {
   }
 
   async findAllByCompanyId(id: string) {
-    return this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.company', 'company')
-      .where('company.id = :id', { id })
-      .select(['user.id', 'user.email', 'user.firstName', 'user.lastName', 'user.createdAt', 'user.updatedAt'])
-      .getMany();
+    const response = await this.userRepository.find({
+      where: {
+        company: {
+          id: id,
+        },
+      },
+      relations: {
+        role: true,
+      },
+    });
+    const users = [];
+
+    for (const user of response) {
+      const userData: any = user;
+      delete userData.active;
+      delete userData.password;
+      delete userData.refreshToken;
+
+      users.push(userData);
+    }
+
+    return users;
   }
 
   async findOneById(id: string): Promise<User | null> {

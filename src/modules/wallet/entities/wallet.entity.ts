@@ -7,10 +7,12 @@ import {
   PrimaryGeneratedColumn,
   JoinColumn,
   UpdateDateColumn,
+  OneToMany,
 } from 'typeorm';
 import { Entity as CompanyEntity } from 'src/modules/entity/entities/entity.entity';
 import { Currency } from '../dto/wallet.enum';
 import { WalletAssetType } from './wallet-asset-type.entity';
+import { WalletAssetGroup } from './wallet-asset-group.entity';
 
 type CurrencyTypes = Currency.BGN | Currency.EUR | Currency.USD;
 @TypeOrmEntity('wallet')
@@ -48,6 +50,9 @@ export class Wallet {
   @ManyToOne(() => CompanyEntity, (companyEntity) => companyEntity.wallet)
   @JoinColumn({ name: 'entity_id' })
   entity: CompanyEntity;
+
+  @OneToMany(() => WalletAssetGroup, (walletAssetGroup) => walletAssetGroup.group)
+  group: WalletAssetGroup;
 
   @CreateDateColumn({
     name: 'created_at',

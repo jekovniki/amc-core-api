@@ -13,6 +13,7 @@ import { EntityType } from './entity-type.entity';
 import { Obligation } from 'src/modules/obligations/entities/obligation.entity';
 import { Wallet } from 'src/modules/wallet/entities/wallet.entity';
 import { WalletRules } from 'src/modules/wallet/entities/wallet-rules.entity';
+import { WalletGroup } from 'src/modules/wallet/entities/wallet-group.entity';
 
 type StatusType = 'ACTIVE' | 'INACTIVE';
 
@@ -46,6 +47,9 @@ export class Entity {
 
   @OneToMany(() => WalletRules, (rules) => rules.entity)
   rules: WalletRules[];
+
+  @OneToMany(() => WalletGroup, (walletGroup) => walletGroup.entity)
+  walletGroup: WalletRules[];
 
   @Column({
     type: 'enum',

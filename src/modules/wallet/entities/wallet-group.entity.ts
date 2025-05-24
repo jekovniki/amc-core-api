@@ -10,7 +10,7 @@ export class WalletGroup {
   @Column()
   name: string;
 
-  @ManyToOne(() => Entity, (entity) => entity.rules)
+  @ManyToOne(() => Entity, (entity) => entity.walletGroup)
   @JoinColumn({ name: 'entity_id' })
   entity: Entity;
 

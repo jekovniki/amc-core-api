@@ -49,7 +49,7 @@ export class Entity {
   rules: WalletRules[];
 
   @OneToMany(() => WalletGroup, (walletGroup) => walletGroup.entity)
-  walletGroup: WalletRules[];
+  walletGroup: WalletGroup[];
 
   @Column({
     type: 'enum',

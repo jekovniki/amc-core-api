@@ -24,6 +24,9 @@ import { WalletRulesService } from './wallet-rules.service';
 import { InvalidRuleIdException } from './exceptions/wallet-rules.exceptions';
 import { CreateWalletRuleDto } from './dto/create-wallet-rule.dto';
 import { UpdateWalletRuleDto } from './dto/update-wallet-rule.dto';
+import { CreateWalletGroupDto } from './dto/create-wallet-group.dto';
+import { WalletGroupService } from './wallet-group.service';
+import { InvalidGroupIdException } from './exceptions/wallet-group.exceptions';
 
 @Controller({
   path: 'wallet',
@@ -34,6 +37,7 @@ export class WalletController {
     private readonly walletService: WalletService,
     private readonly walletAssetTypeService: WalletAssetTypeService,
     private readonly walletRulesService: WalletRulesService,
+    private readonly walletGroupService: WalletGroupService,
   ) {}
 
   /**
@@ -205,6 +209,41 @@ export class WalletController {
       throw new InvalidRuleIdException();
     }
     await this.walletRulesService.deleteRule(Number(ruleId), { entityId, companyId });
+    return;
+  }
+
+  /**
+   * Wallet group
+   */
+  @Post('/:entityId/group')
+  @Permission('asset:CREATE')
+  @Entities(ENTITY_LOCATION.PARAM)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async addGroup(@Param('entityId') entityId: string, @Body() input: CreateWalletGroupDto) {
+    await this.walletGroupService.addGroup(input, entityId);
+
+    return;
+  }
+
+  @Get('/:entityId/group/:groupId')
+  @Permission('asset:READ')
+  @Entities(ENTITY_LOCATION.PARAM)
+  @HttpCode(HttpStatus.OK)
+  async getGroup(@Param('entityId') entityId: string, @Param('groupId') groupId: string) {
+    return !groupId || groupId === 'all'
+      ? this.walletGroupService.findAllGroups(entityId)
+      : this.walletGroupService.findGroup(Number(groupId), entityId);
+  }
+
+  @Delete('/:entityId/group/:groupId')
+  @Permission('asset:DELETE')
+  @Entities(ENTITY_LOCATION.PARAM)
+  @HttpCode(HttpStatus.OK)
+  async deleteGroup(@Param('entityId') entityId: string, @Param('groupId') groupId: string) {
+    if (!isNumberString(groupId)) {
+      throw new InvalidGroupIdException();
+    }
+    await this.walletGroupService.deleteGroup(Number(groupId), entityId);
     return;
   }
 }

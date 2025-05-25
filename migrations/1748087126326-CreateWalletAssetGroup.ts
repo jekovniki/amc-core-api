@@ -28,6 +28,11 @@ export class CreateWalletAssetGroup1748087126326 implements MigrationInterface {
             type: 'varchar',
             isNullable: false,
           },
+          {
+            name: 'entity_id',
+            type: 'uuid',
+            isNullable: false,
+          },
         ],
       }),
       true,
@@ -38,6 +43,16 @@ export class CreateWalletAssetGroup1748087126326 implements MigrationInterface {
       new TableForeignKey({
         columnNames: ['wallet_group_id'],
         referencedTableName: 'wallet_group',
+        referencedColumnNames: ['id'],
+        onDelete: 'CASCADE',
+      }),
+    );
+
+    await queryRunner.createForeignKey(
+      this.table,
+      new TableForeignKey({
+        columnNames: ['entity_id'],
+        referencedTableName: 'entity',
         referencedColumnNames: ['id'],
         onDelete: 'CASCADE',
       }),

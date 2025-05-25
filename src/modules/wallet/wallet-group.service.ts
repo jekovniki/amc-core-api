@@ -76,11 +76,11 @@ export class WalletGroupService {
     });
   }
 
-  public async addAssetToGroup(input: CreateWalletAssetGroupDto, entityId: string) {
+  public async addAssetToGroup(input: CreateWalletAssetGroupDto, groupId: number, entityId: string) {
     const group = this.walletAssetGroupRepository.create({
       assetCode: input.code,
       group: {
-        id: input.group,
+        id: groupId,
       },
       entity: {
         id: entityId,
@@ -92,7 +92,7 @@ export class WalletGroupService {
     return;
   }
 
-  public async updateAssetToGroup(id: number, input: UpdateWalletAssetGroupDto) {
+  public async updateAssetToGroup(id: number, groupId: number, input: UpdateWalletAssetGroupDto) {
     return this.walletAssetGroupRepository.update(
       {
         id,
@@ -100,7 +100,7 @@ export class WalletGroupService {
       {
         assetCode: input.code,
         group: {
-          id: input.group,
+          id: groupId,
         },
       },
     );

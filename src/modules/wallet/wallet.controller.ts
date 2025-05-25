@@ -27,6 +27,8 @@ import { UpdateWalletRuleDto } from './dto/update-wallet-rule.dto';
 import { CreateWalletGroupDto } from './dto/create-wallet-group.dto';
 import { WalletGroupService } from './wallet-group.service';
 import { InvalidGroupIdException } from './exceptions/wallet-group.exceptions';
+import { CreateWalletAssetGroupDto } from './dto/create-wallet-asset-group.dto';
+import { UpdateWalletGroupDto } from './dto/update-wallet-group.dto';
 
 @Controller({
   path: 'wallet',
@@ -235,6 +237,18 @@ export class WalletController {
       : this.walletGroupService.findGroup(Number(groupId), entityId);
   }
 
+  @Patch('/:entityId/group/:groupId')
+  @Permission('asset:DELETE')
+  @Entities(ENTITY_LOCATION.PARAM)
+  @HttpCode(HttpStatus.OK)
+  async updateGroup(@Param('entityId') entityId: string, @Param('groupId') groupId: string, @Body() input: UpdateWalletGroupDto) {
+    if (!isNumberString(groupId)) {
+      throw new InvalidGroupIdException();
+    }
+    await this.walletGroupService.updateGroup(Number(groupId), input, entityId);
+    return;
+  }
+
   @Delete('/:entityId/group/:groupId')
   @Permission('asset:DELETE')
   @Entities(ENTITY_LOCATION.PARAM)
@@ -244,6 +258,34 @@ export class WalletController {
       throw new InvalidGroupIdException();
     }
     await this.walletGroupService.deleteGroup(Number(groupId), entityId);
+    return;
+  }
+
+  @Post('/:entityId/group/:groupId/asset')
+  @Permission('asset:CREATE')
+  @Entities(ENTITY_LOCATION.PARAM)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async addGroupAsset(@Param('entityId') entityId: string, @Param('groupId') groupId: string, @Body() input: CreateWalletAssetGroupDto) {
+    if (!isNumberString(groupId)) {
+      throw new InvalidGroupIdException();
+    }
+
+    await this.walletGroupService.addAssetToGroup(input, Number(groupId), entityId);
+
+    return;
+  }
+
+  @Delete('/:entityId/group/:groupId/asset/:assetId')
+  @Permission('asset:CREATE')
+  @Entities(ENTITY_LOCATION.PARAM)
+  @HttpCode(HttpStatus.NO_CONTENT)
+  async deleteGroupAsset(@Param('entityId') entityId: string, @Param('groupId') _groupId: string, @Param('assetId') assetId: string) {
+    if (!isNumberString(assetId)) {
+      throw new InvalidGroupIdException();
+    }
+
+    await this.walletGroupService.deleteAssetToGroup(Number(assetId), entityId);
+
     return;
   }
 }

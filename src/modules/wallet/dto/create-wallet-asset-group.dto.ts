@@ -1,10 +1,6 @@
-import { IsNotEmpty, IsNumber, IsString } from 'class-validator';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateWalletAssetGroupDto {
-  @IsNotEmpty()
-  @IsNumber()
-  group: number;
-
   @IsNotEmpty()
   @IsString()
   code: string;

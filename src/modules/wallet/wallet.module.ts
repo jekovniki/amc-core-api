@@ -8,10 +8,13 @@ import { WalletAssetTypeService } from './wallet-asset-type.service';
 import { EntityModule } from '../entity/entity.module';
 import { WalletRules } from './entities/wallet-rules.entity';
 import { WalletRulesService } from './wallet-rules.service';
+import { WalletGroup } from './entities/wallet-group.entity';
+import { WalletAssetGroup } from './entities/wallet-asset-group.entity';
+import { WalletGroupService } from './wallet-group.service';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Wallet, WalletAssetType, WalletRules]), EntityModule],
+  imports: [TypeOrmModule.forFeature([Wallet, WalletAssetType, WalletRules, WalletGroup, WalletAssetGroup]), EntityModule],
   controllers: [WalletController],
-  providers: [WalletService, WalletAssetTypeService, WalletRulesService],
+  providers: [WalletService, WalletAssetTypeService, WalletRulesService, WalletGroupService],
 })
 export class WalletModule {}

@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsPositive, IsString } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsOptional, IsPositive, IsString } from 'class-validator';
 import { Currency } from './wallet.enum';
 
 export class CreateWalletAssetDto {
@@ -6,11 +6,11 @@ export class CreateWalletAssetDto {
   @IsString()
   name: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   code: string;
 
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
   isin: string;
 

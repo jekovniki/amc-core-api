@@ -13,6 +13,7 @@ import { ObligationsModule } from './modules/obligations/obligations.module';
 import { WalletModule } from './modules/wallet/wallet.module';
 import { LoggingInterceptor } from './shared/interceptor/logging.interceptor';
 import { EntityGuard } from './shared/guard/entity.guard';
+import { FileModule } from './modules/file/file.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { EntityGuard } from './shared/guard/entity.guard';
     EntityModule,
     ObligationsModule,
     WalletModule,
+    FileModule,
   ],
   providers: [
     IsUnique,

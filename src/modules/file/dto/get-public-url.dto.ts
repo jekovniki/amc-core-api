@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsString, Matches, MaxLength } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { IsNotEmpty, IsOptional, IsString, Matches, MaxLength } from 'class-validator';
 
 export class GetPublicUrlDto {
   @IsString()
@@ -8,4 +9,13 @@ export class GetPublicUrlDto {
     message: 'fileName must contain only valid file path characters',
   })
   fileName: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(100)
+  @Matches(/^[a-zA-Z0-9_-]+$/, {
+    message: 'folder must contain only alphanumeric characters, hyphens, and underscores',
+  })
+  @Transform(({ value }) => value?.trim())
+  folder?: string;
 }

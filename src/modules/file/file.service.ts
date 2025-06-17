@@ -36,7 +36,9 @@ export class FileService {
     });
   }
 
-  getPublicUrl(fileName: string): string {
-    return `${this.configService.getOrThrow('FILE_API')}/${fileName}`;
+  getPublicUrl(fileName: string, folder?: string): string {
+    const key = `${folder ? folder + '/' : ''}${fileName}`;
+
+    return `https://pub-${this.configService.getOrThrow('FILE_PUBLIC_URL_ID')}.r2.dev/${this.configService.getOrThrow('FILE_BUCKET_NAME')}/logos/-${key}`;
   }
 }

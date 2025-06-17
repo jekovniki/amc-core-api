@@ -20,6 +20,6 @@ export class FileController {
   @Public()
   @Get(':fileName')
   getPublicUrl(@Param() params: GetPublicUrlDto) {
-    return this.fileService.getPublicUrl(params.fileName);
+    return this.fileService.getPublicUrl(params.fileName, params.folder);
   }
 }

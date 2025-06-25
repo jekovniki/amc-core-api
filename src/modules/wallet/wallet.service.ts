@@ -19,6 +19,9 @@ export class WalletService {
   public async create(input: CreateWalletAssetDto, { entityId, companyId }: EntityIdentifier) {
     const rule = this.walletRepository.create({
       ...input,
+      assetType: {
+        id: input.assetTypeId,
+      },
       company: {
         id: companyId,
       },
@@ -53,21 +56,21 @@ export class WalletService {
       };
     }
     for (const item of items) {
-      totalAmount += Number(item.value);
+      totalAmount += Number(item.amount) * Number(item.value);
     }
 
-    const countMap = new Map();
+    const amountMap = new Map();
     const valueMap = new Map();
     const key = selectBy === AssetQueryParamFilter.Code ? AssetQueryParamFilter.ISIN : selectBy;
 
     for (const item of items) {
       const itemKey = item[key];
-      if (!countMap.has(itemKey)) {
-        countMap.set(itemKey, 1);
-        valueMap.set(itemKey, Number(item.value));
+      if (!amountMap.has(itemKey)) {
+        amountMap.set(itemKey, Number(item.amount));
+        valueMap.set(itemKey, Number(item.amount) * Number(item.value));
       } else {
-        countMap.set(itemKey, countMap.get(itemKey) + 1);
-        valueMap.set(itemKey, valueMap.get(itemKey) + Number(item.value));
+        amountMap.set(itemKey, amountMap.get(itemKey) + Number(item.amount));
+        valueMap.set(itemKey, valueMap.get(itemKey) + Number(item.amount) * Number(item.value));
       }
     }
 
@@ -82,8 +85,8 @@ export class WalletService {
       const itemKey = item[key];
       return {
         ...item,
-        total: countMap.get(itemKey),
-        totalAmount: Number((countMap.get(itemKey) * Number(item.value)).toFixed(2)),
+        totalAmount: amountMap.get(itemKey),
+        totalValue: Number(valueMap.get(itemKey).toFixed(2)),
       };
     });
 
@@ -99,12 +102,12 @@ export class WalletService {
       `
         SELECT
             COALESCE(${groupBy}::text, 'TOTAL') as "groupKey",
-            COUNT(*) as "assetCount",
-            SUM(value) as "totalValue",
+            SUM(amount) as "totalAmount",
+            SUM(amount * value) as "totalValue",
             CASE
                 WHEN ${groupBy} IS NULL THEN 100.0
-                ELSE ROUND ((SUM(value) / (
-                SELECT SUM(value) FROM wallet
+                ELSE ROUND ((SUM(amount * value) / (
+                SELECT SUM(amount * value) FROM wallet
                 WHERE company_id = $1
                 AND entity_id = $2)) * 100, 2)
             END as percentage
@@ -152,16 +155,6 @@ export class WalletService {
       return new AssetNotFoundException();
     }
 
-    if (input.amount && input.amount !== itemsToUpdate.length) {
-      //   if (input.amount > itemsToUpdate.length) {
-      //     await this.createWithStreaming({ ...input, amount: input.amount - itemsToUpdate.length }, { entityId, companyId });
-      //   }
-
-      if (itemsToUpdate.length > input.amount) {
-        await this.deleteAsset(selectValue, selectBy, itemsToUpdate.length - input.amount, { entityId, companyId });
-      }
-    }
-
     const updateData: any = {};
     if (input.name !== undefined) updateData.name = input.name;
     if (input.code !== undefined) updateData.code = input.code;
@@ -169,6 +162,7 @@ export class WalletService {
     if (input.value !== undefined) updateData.value = input.value;
     if (input.currency !== undefined) updateData.currency = input.currency;
     if (input.assetTypeId !== undefined) updateData.assetType = { id: input.assetTypeId };
+    if (input.amount !== undefined) updateData.amount = input.amount;
 
     if (Object.keys(updateData).length > 0) {
       const itemIds = itemsToUpdate.map((item) => item.id);

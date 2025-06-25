@@ -37,6 +37,13 @@ export class Wallet {
   })
   currency: CurrencyTypes;
 
+  @Column({
+    type: 'decimal',
+    precision: 18,
+    scale: 2,
+  })
+  amount: number;
+
   @ManyToOne(() => WalletAssetType, (assetType) => assetType.wallets)
   @JoinColumn({ name: 'asset_type_id' })
   assetType: WalletAssetType;

@@ -1,10 +1,8 @@
-import { Injectable, InternalServerErrorException } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { CreateWalletAssetDto } from './dto/create-wallet-asset.dto';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Wallet } from './entities/wallet.entity';
 import { Repository } from 'typeorm';
-import { ConfigService } from '@nestjs/config';
-import { isNumber } from 'class-validator';
 import { AssetQueryParamFilter, WalletStructureFilter } from './dto/wallet.enum';
 import { GetWalletStructureResponse } from './dto/wallet.type';
 import { EntityIdentifier } from 'src/shared/interface/entity.type';
@@ -16,45 +14,22 @@ export class WalletService {
   constructor(
     @InjectRepository(Wallet)
     private readonly walletRepository: Repository<Wallet>,
-    private readonly configService: ConfigService,
   ) {}
 
-  public async createWithStreaming(input: CreateWalletAssetDto, { entityId, companyId }: EntityIdentifier) {
-    const BATCH_SIZE = Number(this.configService.getOrThrow('WALLET_BATCH_SIZE'));
-    if (!isNumber(BATCH_SIZE)) {
-      console.error('Invalid batch size. It needs to be number. Check the config file');
-      throw new InternalServerErrorException();
-    }
+  public async create(input: CreateWalletAssetDto, { entityId, companyId }: EntityIdentifier) {
+    const rule = this.walletRepository.create({
+      ...input,
+      company: {
+        id: companyId,
+      },
+      entity: {
+        id: entityId,
+      },
+    });
 
-    for (let offset = 0; offset < input.amount; offset += BATCH_SIZE) {
-      const batchLimit = Math.min(BATCH_SIZE, input.amount - offset);
-      const batchInput = { ...input, amount: batchLimit };
+    await this.walletRepository.insert(rule);
 
-      const walletsToInsert = this.prepareBulkWalletData(batchInput, { entityId, companyId });
-
-      await this.walletRepository.insert(walletsToInsert);
-    }
-  }
-
-  private prepareBulkWalletData(input: CreateWalletAssetDto, { entityId, companyId }: EntityIdentifier): Partial<Wallet>[] {
-    const wallets: any[] = [];
-
-    for (let i = 1; i <= input.amount; i++) {
-      wallets.push({
-        name: input.name,
-        code: input.code,
-        isin: input.isin,
-        value: input.value,
-        currency: input.currency,
-        company: { id: companyId },
-        entity: { id: entityId },
-        assetType: {
-          id: input.assetTypeId,
-        },
-      });
-    }
-
-    return wallets;
+    return;
   }
 
   async getAsset(value: string, selectBy: AssetQueryParamFilter, { entityId, companyId }: EntityIdentifier) {
@@ -178,9 +153,9 @@ export class WalletService {
     }
 
     if (input.amount && input.amount !== itemsToUpdate.length) {
-      if (input.amount > itemsToUpdate.length) {
-        await this.createWithStreaming({ ...input, amount: input.amount - itemsToUpdate.length }, { entityId, companyId });
-      }
+      //   if (input.amount > itemsToUpdate.length) {
+      //     await this.createWithStreaming({ ...input, amount: input.amount - itemsToUpdate.length }, { entityId, companyId });
+      //   }
 
       if (itemsToUpdate.length > input.amount) {
         await this.deleteAsset(selectValue, selectBy, itemsToUpdate.length - input.amount, { entityId, companyId });

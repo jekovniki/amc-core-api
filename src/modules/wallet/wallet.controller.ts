@@ -87,7 +87,7 @@ export class WalletController {
   @Permission('entity:CREATE')
   @Entities(ENTITY_LOCATION.PARAM)
   create(@Param('entityId') entityId: string, @Body() createWalletDto: CreateWalletAssetDto, @User() { companyId }: RequestUserData) {
-    return this.walletService.createWithStreaming(createWalletDto, { entityId, companyId });
+    return this.walletService.create(createWalletDto, { entityId, companyId });
   }
 
   @Get('/:entityId/structure/:filter')

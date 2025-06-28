@@ -19,7 +19,12 @@ async function bootstrap() {
   app.enableCors({
     origin:
       process.env.NODE_ENV === 'production'
-        ? ['https://amc-ui-production.up.railway.app', 'https://amc-ui-production.up.railway.app/']
+        ? [
+            'https://amc-ui-production.up.railway.app',
+            'https://amc-ui-production.up.railway.app/',
+            'https://app.amc-manager.com',
+            'https://app.amc-manager.com/',
+          ]
         : true,
     credentials: true,
   }); // remove later

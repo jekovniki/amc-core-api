@@ -19,4 +19,13 @@ export enum AssetQueryParamFilter {
 export enum WalletRulesType {
   PerAsset = 'per_asset',
   PerGroup = 'per_group',
+  All = 'all',
+  PerTypeAsset = 'per_type_asset',
+}
+
+export enum WalletRulesValueType {
+  Percentage = '%',
+  EUR = 'EUR',
+  BGN = 'BGN',
+  USD = 'USD',
 }

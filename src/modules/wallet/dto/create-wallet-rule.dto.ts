@@ -1,5 +1,5 @@
 import { IsEnum, IsNotEmpty, IsNumber, IsString, Max, Min } from 'class-validator';
-import { WalletRulesType } from './wallet.enum';
+import { WalletRulesType, WalletRulesValueType } from './wallet.enum';
 
 export class CreateWalletRuleDto {
   @IsNotEmpty()
@@ -19,4 +19,8 @@ export class CreateWalletRuleDto {
   @IsNotEmpty()
   @IsEnum(WalletRulesType, { each: true })
   type: WalletRulesType;
+
+  @IsNotEmpty()
+  @IsEnum(WalletRulesValueType, { each: true })
+  typeValue: WalletRulesValueType;
 }

@@ -24,6 +24,8 @@ async function bootstrap() {
             'https://amc-ui-production.up.railway.app/',
             'https://app.amc-manager.com',
             'https://app.amc-manager.com/',
+            'https://amc-manager.com',
+            'https://amc-manager.com/',
           ]
         : true,
     credentials: true,

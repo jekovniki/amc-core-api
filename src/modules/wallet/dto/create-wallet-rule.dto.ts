@@ -1,4 +1,4 @@
-import { IsEnum, IsNotEmpty, IsNumber, IsString, Max, Min } from 'class-validator';
+import { IsEnum, IsNotEmpty, IsNumber, IsString, Min } from 'class-validator';
 import { WalletRulesType, WalletRulesValueType } from './wallet.enum';
 
 export class CreateWalletRuleDto {
@@ -8,12 +8,10 @@ export class CreateWalletRuleDto {
 
   @IsNumber()
   @Min(0)
-  @Max(100)
   minLimit: number;
 
   @IsNumber()
   @Min(0)
-  @Max(100)
   maxLimit: number;
 
   @IsNotEmpty()

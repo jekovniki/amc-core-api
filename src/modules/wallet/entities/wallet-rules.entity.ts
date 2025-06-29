@@ -9,7 +9,7 @@ import {
   CreateDateColumn,
   UpdateDateColumn,
 } from 'typeorm';
-import { WalletRulesType } from '../dto/wallet.enum';
+import { WalletRulesType, WalletRulesValueType } from '../dto/wallet.enum';
 
 @TypeOrmEntity('wallet_rules')
 export class WalletRules {
@@ -35,9 +35,16 @@ export class WalletRules {
 
   @Column({
     type: 'enum',
-    enum: [WalletRulesType.PerAsset, WalletRulesType.PerGroup],
+    enum: [WalletRulesType.PerAsset, WalletRulesType.PerGroup, WalletRulesType.All, WalletRulesType.PerTypeAsset],
   })
   type: WalletRulesType;
+
+  @Column({
+    type: 'enum',
+    name: 'type_value',
+    enum: [WalletRulesValueType.Percentage, WalletRulesValueType.BGN, WalletRulesValueType.EUR, WalletRulesValueType.USD],
+  })
+  typeValue: WalletRulesValueType;
 
   @CreateDateColumn({
     name: 'created_at',
